@@ -6,12 +6,13 @@ import { MatchState } from '../lib/types';
 import { getHandOffUrl, generateToken } from '../lib/state-serializer';
 
 interface HandOffModalProps {
+  matchId: string;
   state: MatchState;
   onClose: () => void;
   onTokenHandedOff: (newToken: string) => void;
 }
 
-export default function HandOffModal({ state, onClose, onTokenHandedOff }: HandOffModalProps) {
+export default function HandOffModal({ matchId, state, onClose, onTokenHandedOff }: HandOffModalProps) {
   const [handOffToken] = useState(() => generateToken());
   const [handOffUrl, setHandOffUrl] = useState('');
   const [copied, setCopied] = useState(false);
@@ -19,9 +20,9 @@ export default function HandOffModal({ state, onClose, onTokenHandedOff }: HandO
   const [canNativeShare, setCanNativeShare] = useState(false);
 
   useEffect(() => {
-    setHandOffUrl(getHandOffUrl(state, handOffToken));
+    setHandOffUrl(getHandOffUrl(matchId, handOffToken));
     setCanNativeShare(typeof navigator !== 'undefined' && !!navigator.share);
-  }, [state, handOffToken]);
+  }, [matchId, handOffToken]);
 
   const handleCopy = useCallback(async () => {
     try {
