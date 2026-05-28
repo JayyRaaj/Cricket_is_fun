@@ -1,4 +1,4 @@
-import { kv } from '@vercel/kv';
+import { redis } from '../../../../lib/redis';
 import { NextResponse } from 'next/server';
 
 export async function GET(
@@ -7,7 +7,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const signal = await kv.get(`signal:${id}`);
+    const signal = await redis.get(`signal:${id}`);
     return NextResponse.json({ signal });
   } catch (error: any) {
     console.error('Error fetching signal:', error);
@@ -25,10 +25,10 @@ export async function POST(
     const { signal } = body;
     
     if (signal === null) {
-      await kv.del(`signal:${id}`);
+      await redis.del(`signal:${id}`);
     } else {
-      // Store signaling SDP offer/answer with a 60-second TTL to avoid stale connections
-      await kv.set(`signal:${id}`, signal, { ex: 60 });
+      // Store WebRTC SDP signal with 60s TTL to prevent stale signals
+      await redis.set(`signal:${id}`, signal, { ex: 60 });
     }
     
     return NextResponse.json({ success: true });

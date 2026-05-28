@@ -8,6 +8,8 @@ import {
   getShareableUrl,
   saveTokenToStorage,
   getTokenFromStorage,
+  readStateFromHash,
+  serializeState,
 } from '../../lib/state-serializer';
 import Scoreboard from '../../components/Scoreboard';
 import DeliveryLog from '../../components/DeliveryLog';
@@ -34,6 +36,7 @@ export default function MatchPage() {
   // WebRTC callee states
   const [incomingOffer, setIncomingOffer] = useState<any>(null);
   const [isAcceptingHandoff, setIsAcceptingHandoff] = useState(false);
+  const [isLocalFallback, setIsLocalFallback] = useState(false);
 
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const stateRef = useRef(state);
@@ -93,6 +96,15 @@ export default function MatchPage() {
 
         const res = await fetch(`/api/match/${id}`, { headers });
         if (!res.ok) {
+          // If server endpoints fail (e.g. offline dev or static fallback), try reading from hash
+          const hashState = readStateFromHash();
+          if (hashState) {
+            setState(hashState);
+            setIsEditor(true);
+            setIsLocalFallback(true);
+            setIsHydrated(true);
+            return;
+          }
           if (res.status === 404) {
             throw new Error('Match not found');
           }
@@ -104,6 +116,17 @@ export default function MatchPage() {
         setState(data.state);
         setIsEditor(data.isEditor);
         
+        const isServerFallback = !!data.isFallback;
+        setIsLocalFallback(isServerFallback);
+
+        if (isServerFallback) {
+          // If server is in fallback mode, also try to read from hash
+          const hashState = readStateFromHash();
+          if (hashState) {
+            setState(hashState);
+          }
+        }
+        
         if (data.isEditor && token) {
           setEditToken(token);
           saveTokenToStorage(token);
@@ -113,6 +136,15 @@ export default function MatchPage() {
 
         setIsHydrated(true);
       } catch (err: any) {
+        // Fallback to reading state from hash if an exception occurs
+        const hashState = readStateFromHash();
+        if (hashState) {
+          setState(hashState);
+          setIsEditor(true);
+          setIsLocalFallback(true);
+          setIsHydrated(true);
+          return;
+        }
         console.error('Error hydrating match page:', err);
         setError(err.message || 'An error occurred while loading the match.');
         setIsHydrated(true);
@@ -260,6 +292,15 @@ export default function MatchPage() {
 
     if (!isEditor || !editTokenRef.current) return;
 
+    if (isLocalFallback) {
+      // Offline / Local dev fallback: save state inside the URL hash directly (no spectator sync)
+      const url = new URL(window.location.href);
+      const serialized = serializeState(newState);
+      url.hash = `token=${editTokenRef.current}&state=${serialized}`;
+      window.history.replaceState(null, '', url.toString());
+      return;
+    }
+
     try {
       const response = await fetch(`/api/match/${id}`, {
         method: 'PUT',
@@ -278,7 +319,7 @@ export default function MatchPage() {
     } catch (err) {
       console.error('Failed to update state on server:', err);
     }
-  }, [id, isEditor]);
+  }, [id, isEditor, isLocalFallback]);
 
   // Share URL to clipboard (read-only link, no token)
   const handleShare = useCallback(() => {
@@ -439,6 +480,7 @@ export default function MatchPage() {
           state={state}
           onClose={() => setShowHandOff(false)}
           onTokenHandedOff={handleTokenHandedOff}
+          isLocalFallback={isLocalFallback}
         />
       )}
 

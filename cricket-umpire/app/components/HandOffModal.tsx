@@ -10,6 +10,7 @@ interface HandOffModalProps {
   state: MatchState;
   onClose: () => void;
   onTokenHandedOff: (newToken: string) => void;
+  isLocalFallback?: boolean;
 }
 
 export default function HandOffModal({
@@ -17,6 +18,7 @@ export default function HandOffModal({
   state,
   onClose,
   onTokenHandedOff,
+  isLocalFallback = false,
 }: HandOffModalProps) {
   const [handOffToken] = useState(() => generateToken());
   const [handOffUrl, setHandOffUrl] = useState('');
@@ -65,6 +67,14 @@ export default function HandOffModal({
 
   // Initiate WebRTC connection
   useEffect(() => {
+    if (isLocalFallback) {
+      // Local fallback mode: skip WebRTC discovery and encode full state into the URL directly
+      setHandOffUrl(getHandOffUrl(matchId, handOffToken, state));
+      setCanNativeShare(typeof navigator !== 'undefined' && !!navigator.share);
+      setIsSearchingPeer(false);
+      return;
+    }
+
     setHandOffUrl(getHandOffUrl(matchId, handOffToken));
     setCanNativeShare(typeof navigator !== 'undefined' && !!navigator.share);
 

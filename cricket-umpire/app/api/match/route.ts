@@ -1,4 +1,4 @@
-import { kv } from '@vercel/kv';
+import { redis } from '../../lib/redis';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
@@ -12,10 +12,13 @@ export async function POST(request: Request) {
       matchId += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     
-    // Store ALL state in Vercel KV under key 'match:{id}' along with the edit token
-    await kv.set(`match:${matchId}`, { state, token });
+    // Store in Redis wrapper (real Upstash or in-memory fallback)
+    await redis.set(`match:${matchId}`, { state, token });
     
-    return NextResponse.json({ matchId });
+    return NextResponse.json({
+      matchId,
+      isFallback: redis.isFallback()
+    });
   } catch (error: any) {
     console.error('Error creating match:', error);
     return NextResponse.json(

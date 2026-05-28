@@ -15,16 +15,24 @@ function getBaseUrl(): string {
 /**
  * Generate a shareable URL with only the match ID (read-only, no edit token).
  */
-export function getShareableUrl(matchId: string): string {
+export function getShareableUrl(matchId: string, fallbackState?: MatchState): string {
   const base = getBaseUrl();
+  if (fallbackState) {
+    const encoded = serializeState(fallbackState);
+    return `${base}/match/${matchId}#state=${encoded}`;
+  }
   return `${base}/match/${matchId}`;
 }
 
 /**
  * Generate a hand-off URL that includes the match ID AND the new edit token.
  */
-export function getHandOffUrl(matchId: string, newToken: string): string {
+export function getHandOffUrl(matchId: string, newToken: string, fallbackState?: MatchState): string {
   const base = getBaseUrl();
+  if (fallbackState) {
+    const encoded = serializeState(fallbackState);
+    return `${base}/match/${matchId}#token=${newToken}&state=${encoded}`;
+  }
   return `${base}/match/${matchId}#token=${newToken}`;
 }
 
@@ -36,6 +44,52 @@ export function readTokenFromHash(): string | null {
   const hash = window.location.hash;
   const match = hash.match(/token=([^&]+)/);
   return match ? match[1] : null;
+}
+
+/**
+ * Read the fallback match state from the URL hash fragment.
+ */
+export function readStateFromHash(): MatchState | null {
+  if (typeof window === 'undefined') return null;
+  const hash = window.location.hash;
+  const match = hash.match(/state=([^&]+)/);
+  if (!match) return null;
+  return deserializeState(match[1]);
+}
+
+/**
+ * Serialize match state to a Base64 encoded JSON string
+ */
+export function serializeState(state: MatchState): string {
+  try {
+    const json = JSON.stringify(state);
+    return btoa(encodeURIComponent(json));
+  } catch {
+    console.error('Failed to serialize state');
+    return '';
+  }
+}
+
+/**
+ * Deserialize match state from a Base64 encoded JSON string
+ */
+export function deserializeState(encoded: string): MatchState | null {
+  try {
+    const json = decodeURIComponent(atob(encoded));
+    const parsed = JSON.parse(json);
+    if (
+      typeof parsed.totalOvers === 'number' &&
+      typeof parsed.totalRuns === 'number' &&
+      typeof parsed.totalWickets === 'number' &&
+      Array.isArray(parsed.deliveries)
+    ) {
+      return parsed as MatchState;
+    }
+    return null;
+  } catch {
+    console.error('Failed to deserialize state');
+    return null;
+  }
 }
 
 /**

@@ -1,4 +1,4 @@
-import { kv } from '@vercel/kv';
+import { redis } from '../../../lib/redis';
 import { NextResponse } from 'next/server';
 
 export async function GET(
@@ -7,7 +7,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const data: any = await kv.get(`match:${id}`);
+    const data: any = await redis.get(`match:${id}`);
     
     if (!data) {
       return NextResponse.json({ error: 'Match not found' }, { status: 404 });
@@ -21,7 +21,8 @@ export async function GET(
     
     return NextResponse.json({
       state: data.state,
-      isEditor
+      isEditor,
+      isFallback: redis.isFallback()
     });
   } catch (error: any) {
     console.error('Error fetching match:', error);
@@ -41,8 +42,8 @@ export async function PUT(
     const body = await request.json();
     const { state, token, newToken } = body;
     
-    // Fetch existing match data from KV
-    const data: any = await kv.get(`match:${id}`);
+    // Fetch existing match data from Redis
+    const data: any = await redis.get(`match:${id}`);
     if (!data) {
       return NextResponse.json({ error: 'Match not found' }, { status: 404 });
     }
@@ -55,11 +56,14 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized: invalid edit token' }, { status: 401 });
     }
     
-    // Update the state in Vercel KV, and update the token if a hand-off occurred (newToken provided)
+    // Update the state and handle optional token handoff
     const updatedToken = newToken || data.token;
-    await kv.set(`match:${id}`, { state, token: updatedToken });
+    await redis.set(`match:${id}`, { state, token: updatedToken });
     
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      isFallback: redis.isFallback()
+    });
   } catch (error: any) {
     console.error('Error updating match:', error);
     return NextResponse.json(
