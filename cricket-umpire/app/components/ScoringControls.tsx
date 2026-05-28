@@ -10,17 +10,26 @@ import {
 interface ScoringControlsProps {
   state: MatchState;
   onStateChange: (newState: MatchState) => void;
+  readOnly?: boolean;
 }
 
-export default function ScoringControls({ state, onStateChange }: ScoringControlsProps) {
+export default function ScoringControls({ state, onStateChange, readOnly = false }: ScoringControlsProps) {
   const [showExtras, setShowExtras] = useState(false);
-  const disabled = state.isInningsComplete || state.isMatchComplete;
-  const showEndInnings = canEndInnings(state);
+  const disabled = state.isInningsComplete || state.isMatchComplete || readOnly;
+  const showEndInnings = canEndInnings(state) && !readOnly;
 
   const btnBase = 'font-bold rounded-2xl transition-all duration-150 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed select-none touch-manipulation';
 
   return (
     <div className="w-full space-y-4">
+      {/* Read-only banner */}
+      {readOnly && !state.isMatchComplete && (
+        <div className="text-center py-3 px-4 bg-amber-900/30 border border-amber-700/30 rounded-2xl">
+          <p className="text-amber-400/90 text-sm font-semibold">👁 Read-Only Mode</p>
+          <p className="text-amber-400/60 text-xs mt-0.5">You&apos;re viewing this match. Only the active editor can score.</p>
+        </div>
+      )}
+
       {/* Match complete message — hide scoring buttons */}
       {state.isMatchComplete && (
         <div className="text-center py-4">
@@ -183,26 +192,28 @@ export default function ScoringControls({ state, onStateChange }: ScoringControl
         </>
       )}
 
-      {/* Undo & New Match — always visible */}
-      <div className="grid grid-cols-2 gap-3 pt-2">
-        <button
-          onClick={() => onStateChange(undoLastDelivery(state))}
-          disabled={state.deliveries.length === 0}
-          className={`${btnBase} h-14 text-base bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700`}
-        >
-          ↩ Undo
-        </button>
-        <button
-          onClick={() => {
-            if (window.confirm('Start a new match? This will reset all scoring data.')) {
-              onStateChange({ ...INITIAL_STATE, matchStarted: false });
-            }
-          }}
-          className={`${btnBase} h-14 text-base bg-slate-800 hover:bg-slate-700 text-red-400 border border-slate-700`}
-        >
-          ⟳ New Match
-        </button>
-      </div>
+      {/* Undo & New Match — only for editors */}
+      {!readOnly && (
+        <div className="grid grid-cols-2 gap-3 pt-2">
+          <button
+            onClick={() => onStateChange(undoLastDelivery(state))}
+            disabled={state.deliveries.length === 0}
+            className={`${btnBase} h-14 text-base bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700`}
+          >
+            ↩ Undo
+          </button>
+          <button
+            onClick={() => {
+              if (window.confirm('Start a new match? This will reset all scoring data.')) {
+                onStateChange({ ...INITIAL_STATE, matchStarted: false });
+              }
+            }}
+            className={`${btnBase} h-14 text-base bg-slate-800 hover:bg-slate-700 text-red-400 border border-slate-700`}
+          >
+            ⟳ New Match
+          </button>
+        </div>
+      )}
     </div>
   );
 }
