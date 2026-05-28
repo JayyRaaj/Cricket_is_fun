@@ -2,12 +2,10 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { MatchState } from '../lib/types';
 import { getHandOffUrl, generateToken } from '../lib/state-serializer';
 
 interface HandOffModalProps {
   matchId: string;
-  state: MatchState;
   onClose: () => void;
   onTokenHandedOff: (newToken: string) => void;
   isLocalFallback?: boolean;
@@ -15,7 +13,6 @@ interface HandOffModalProps {
 
 export default function HandOffModal({
   matchId,
-  state,
   onClose,
   onTokenHandedOff,
   isLocalFallback = false,
@@ -67,16 +64,16 @@ export default function HandOffModal({
 
   // Initiate WebRTC connection
   useEffect(() => {
+    // Always generate a short URL — state is in Upstash, never in the URL
+    const shortUrl = getHandOffUrl(matchId, handOffToken);
+    setHandOffUrl(shortUrl);
+    setCanNativeShare(typeof navigator !== 'undefined' && !!navigator.share);
+
     if (isLocalFallback) {
-      // Local fallback mode: skip WebRTC discovery and encode full state into the URL directly
-      setHandOffUrl(getHandOffUrl(matchId, handOffToken, state));
-      setCanNativeShare(typeof navigator !== 'undefined' && !!navigator.share);
+      // Local fallback mode: skip WebRTC discovery, just show QR
       setIsSearchingPeer(false);
       return;
     }
-
-    setHandOffUrl(getHandOffUrl(matchId, handOffToken));
-    setCanNativeShare(typeof navigator !== 'undefined' && !!navigator.share);
 
     let isSubscribed = true;
 
@@ -101,11 +98,11 @@ export default function HandOffModal({
           setIsSearchingPeer(false);
           if (webrtcTimeoutRef.current) clearTimeout(webrtcTimeoutRef.current);
 
-          // Once DataChannel is open, transfer the full match state and new token instantly!
+          // Once DataChannel is open, transfer the handoff token instantly!
+          // State is stored in Upstash — the receiver fetches it by matchId.
           dc.send(
             JSON.stringify({
               type: 'handoff-transfer',
-              state,
               token: handOffToken,
             })
           );
@@ -195,7 +192,7 @@ export default function HandOffModal({
       if (webrtcTimeoutRef.current) clearTimeout(webrtcTimeoutRef.current);
       cleanupConnection();
     };
-  }, [matchId, state, handOffToken, onTokenHandedOff, cleanupSignaling, cleanupConnection]);
+  }, [matchId, handOffToken, onTokenHandedOff, cleanupSignaling, cleanupConnection, isLocalFallback]);
 
   const handleCopy = useCallback(async () => {
     try {
@@ -211,8 +208,8 @@ export default function HandOffModal({
     if (!navigator.share) return;
     try {
       await navigator.share({
-        title: `Cricket Match — ${state.teamBatting} vs ${state.teamBowling}`,
-        text: `Take over scoring: ${state.teamBatting} ${state.totalRuns}/${state.totalWickets}`,
+        title: 'Cricket Match — Hand Off Scoring',
+        text: 'Take over scoring for this cricket match',
         url: handOffUrl,
       });
       setShared(true);
@@ -224,7 +221,7 @@ export default function HandOffModal({
         console.error('Share failed:', err);
       }
     }
-  }, [handOffUrl, state, handOffToken, onTokenHandedOff, cleanupSignaling, cleanupConnection]);
+  }, [handOffUrl, handOffToken, onTokenHandedOff, cleanupSignaling, cleanupConnection]);
 
   const handleConfirmHandOff = useCallback(async () => {
     await cleanupSignaling();

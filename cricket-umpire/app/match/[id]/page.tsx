@@ -219,15 +219,24 @@ export default function MatchPage() {
           try {
             const data = JSON.parse(msgEvent.data);
             if (data.type === 'handoff-transfer') {
-              // Successfully received the full match state and edit token over DataChannel!
-              setState(data.state);
+              // Received the handoff token over DataChannel.
+              // Fetch the full state from Upstash by matchId.
+              const token = data.token;
+              const res = await fetch(`/api/match/${id}`, {
+                headers: { 'x-edit-token': token },
+              });
+              if (res.ok) {
+                const serverData = await res.json();
+                setState(serverData.state);
+              }
+
               setIsEditor(true);
-              setEditToken(data.token);
-              saveTokenToStorage(data.token);
+              setEditToken(token);
+              saveTokenToStorage(token);
 
               // Set the URL hash to identify as the active editor
               const url = new URL(window.location.href);
-              url.hash = `token=${data.token}`;
+              url.hash = `token=${token}`;
               window.history.replaceState(null, '', url.toString());
 
               // Send Ack back over DataChannel to confirm receipt
@@ -477,7 +486,6 @@ export default function MatchPage() {
       {showHandOff && (
         <HandOffModal
           matchId={id}
-          state={state}
           onClose={() => setShowHandOff(false)}
           onTokenHandedOff={handleTokenHandedOff}
           isLocalFallback={isLocalFallback}

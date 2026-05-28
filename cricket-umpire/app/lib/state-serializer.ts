@@ -26,13 +26,11 @@ export function getShareableUrl(matchId: string, fallbackState?: MatchState): st
 
 /**
  * Generate a hand-off URL that includes the match ID AND the new edit token.
+ * NEVER encodes state — the QR code can only hold ~200 chars reliably.
+ * The full state is already stored in Upstash; the new umpire fetches it by matchId.
  */
-export function getHandOffUrl(matchId: string, newToken: string, fallbackState?: MatchState): string {
+export function getHandOffUrl(matchId: string, newToken: string): string {
   const base = getBaseUrl();
-  if (fallbackState) {
-    const encoded = serializeState(fallbackState);
-    return `${base}/match/${matchId}#token=${newToken}&state=${encoded}`;
-  }
   return `${base}/match/${matchId}#token=${newToken}`;
 }
 
