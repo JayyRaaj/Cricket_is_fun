@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MatchState, INITIAL_STATE, BatterStats, BowlerStats } from '../lib/types';
 
 interface MatchSetupProps {
@@ -12,6 +12,40 @@ export default function MatchSetup({ onStart }: MatchSetupProps) {
   const [teamBowling, setTeamBowling] = useState('Team B');
   const [totalOvers, setTotalOvers] = useState(20);
   const [showPlayerSetup, setShowPlayerSetup] = useState(false);
+
+  // Theme state supporting 'dark', 'light', and 'sunlight' modes
+  const [theme, setTheme] = useState<'dark' | 'light' | 'sunlight'>('dark');
+
+  // Hydrate theme on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('cricket-umpire-theme') as 'dark' | 'light' | 'sunlight' | null;
+    if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'sunlight') {
+      setTheme(savedTheme);
+      applyTheme(savedTheme);
+    } else {
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const defaultTheme = systemDark ? 'dark' : 'light';
+      setTheme(defaultTheme);
+      applyTheme(defaultTheme);
+    }
+  }, []);
+
+  const applyTheme = (t: 'dark' | 'light' | 'sunlight') => {
+    const html = document.documentElement;
+    html.classList.remove('dark', 'light', 'sunlight');
+    html.classList.add(t);
+    localStorage.setItem('cricket-umpire-theme', t);
+  };
+
+  const toggleTheme = () => {
+    let nextTheme: 'dark' | 'light' | 'sunlight' = 'dark';
+    if (theme === 'dark') nextTheme = 'light';
+    else if (theme === 'light') nextTheme = 'sunlight';
+    else nextTheme = 'dark';
+    
+    setTheme(nextTheme);
+    applyTheme(nextTheme);
+  };
 
   // Raw player inputs
   const [teamAPlayersInput, setTeamAPlayersInput] = useState('');
@@ -100,7 +134,20 @@ export default function MatchSetup({ onStart }: MatchSetupProps) {
     'block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4 relative">
+      {/* Floating Theme Toggle in top-right */}
+      <div className="absolute top-4 right-4 z-50">
+        <button
+          onClick={toggleTheme}
+          className="px-3.5 py-2 bg-slate-900 border border-slate-800 rounded-2xl text-amber-400 font-black shadow-lg transition-all active:scale-95 cursor-pointer text-sm"
+          title={`Switch to ${
+            theme === 'dark' ? 'Light' : theme === 'light' ? 'Sunlight' : 'Dark'
+          } Mode`}
+        >
+          {theme === 'dark' ? '🌙' : theme === 'light' ? '☀️' : '🕶️'}
+        </button>
+      </div>
+
       <div className="w-full max-w-md space-y-6 py-6">
         {/* Header */}
         <div className="text-center mb-4">

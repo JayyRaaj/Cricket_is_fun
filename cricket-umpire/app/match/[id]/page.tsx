@@ -31,11 +31,49 @@ export default function MatchPage() {
   const [isEditor, setIsEditor] = useState(false);
   const [editToken, setEditToken] = useState<string | null>(null);
 
-  // Keep ref to latest state and token to avoid capturing stale values in event handlers
+  // WebRTC callee states
+  const [incomingOffer, setIncomingOffer] = useState<any>(null);
+  const [isAcceptingHandoff, setIsAcceptingHandoff] = useState(false);
+
+  const pcRef = useRef<RTCPeerConnection | null>(null);
   const stateRef = useRef(state);
   stateRef.current = state;
   const editTokenRef = useRef(editToken);
   editTokenRef.current = editToken;
+
+  // Theme state supporting 'dark', 'light', and 'sunlight' modes
+  const [theme, setTheme] = useState<'dark' | 'light' | 'sunlight'>('dark');
+
+  // Hydrate theme on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('cricket-umpire-theme') as 'dark' | 'light' | 'sunlight' | null;
+    if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'sunlight') {
+      setTheme(savedTheme);
+      applyTheme(savedTheme);
+    } else {
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const defaultTheme = systemDark ? 'dark' : 'light';
+      setTheme(defaultTheme);
+      applyTheme(defaultTheme);
+    }
+  }, []);
+
+  const applyTheme = (t: 'dark' | 'light' | 'sunlight') => {
+    const html = document.documentElement;
+    html.classList.remove('dark', 'light', 'sunlight');
+    html.classList.add(t);
+    localStorage.setItem('cricket-umpire-theme', t);
+  };
+
+  const toggleTheme = useCallback(() => {
+    let nextTheme: 'dark' | 'light' | 'sunlight' = 'dark';
+    if (theme === 'dark') nextTheme = 'light';
+    else if (theme === 'light') nextTheme = 'sunlight';
+    else nextTheme = 'dark';
+    
+    setTheme(nextTheme);
+    applyTheme(nextTheme);
+  }, [theme]);
 
   // On mount: fetch match state from server and check editor status
   useEffect(() => {
@@ -43,15 +81,11 @@ export default function MatchPage() {
 
     const fetchInitialState = async () => {
       try {
-        // 1. Read token from URL hash if present
         let token = readTokenFromHash();
-
-        // 2. Fall back to localStorage if no token is in URL hash
         if (!token) {
           token = getTokenFromStorage();
         }
 
-        // 3. Request match data and verify editor status
         const headers: Record<string, string> = {};
         if (token) {
           headers['x-edit-token'] = token;
@@ -97,7 +131,6 @@ export default function MatchPage() {
         const res = await fetch(`/api/match/${id}`);
         if (res.ok) {
           const data = await res.json();
-          // Only update state if we are still a spectator
           setState(data.state);
         }
       } catch (err) {
@@ -108,20 +141,125 @@ export default function MatchPage() {
     return () => clearInterval(pollInterval);
   }, [id, isEditor, isHydrated, error]);
 
+  // WebRTC callee signaling poll: poll for WebRTC offer every 2 seconds if spectator
+  useEffect(() => {
+    if (!id || isEditor || !isHydrated || error || isAcceptingHandoff) return;
+
+    const signalPoll = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/match/${id}/signal`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.signal && data.signal.type === 'offer') {
+            setIncomingOffer(data.signal.sdp);
+          } else {
+            setIncomingOffer(null);
+          }
+        }
+      } catch (err) {
+        console.error('Signal poll error:', err);
+      }
+    }, 2000);
+
+    return () => clearInterval(signalPoll);
+  }, [id, isEditor, isHydrated, error, isAcceptingHandoff]);
+
+  // Handle accepting WebRTC Handoff
+  const acceptWebRTCHandoff = useCallback(async (offerSdp: any) => {
+    setIsAcceptingHandoff(true);
+    setIncomingOffer(null);
+
+    try {
+      // 1. Create Peer Connection
+      const pc = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+        ],
+      });
+      pcRef.current = pc;
+
+      // 2. Listen for remote DataChannel
+      pc.ondatachannel = (event) => {
+        const dc = event.channel;
+        
+        dc.onmessage = async (msgEvent) => {
+          try {
+            const data = JSON.parse(msgEvent.data);
+            if (data.type === 'handoff-transfer') {
+              // Successfully received the full match state and edit token over DataChannel!
+              setState(data.state);
+              setIsEditor(true);
+              setEditToken(data.token);
+              saveTokenToStorage(data.token);
+
+              // Set the URL hash to identify as the active editor
+              const url = new URL(window.location.href);
+              url.hash = `token=${data.token}`;
+              window.history.replaceState(null, '', url.toString());
+
+              // Send Ack back over DataChannel to confirm receipt
+              dc.send(JSON.stringify({ type: 'handoff-ack' }));
+              
+              // Clear KV signal & stop accept loading
+              await fetch(`/api/match/${id}/signal`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ signal: null }),
+              });
+
+              setIsAcceptingHandoff(false);
+              pc.close();
+            }
+          } catch (err) {
+            console.error('DataChannel receiver error:', err);
+            setIsAcceptingHandoff(false);
+          }
+        };
+      };
+
+      // 3. Set Remote Description (SDP Offer)
+      await pc.setRemoteDescription(new RTCSessionDescription(offerSdp));
+
+      // 4. Create SDP Answer
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+
+      // 5. Gather ICE candidates, then publish SDP Answer to KV
+      pc.onicecandidate = async (event) => {
+        if (!event.candidate) {
+          try {
+            await fetch(`/api/match/${id}/signal`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                signal: { type: 'answer', sdp: pc.localDescription },
+              }),
+            });
+          } catch (err) {
+            console.error('Failed to post WebRTC SDP answer:', err);
+            setIsAcceptingHandoff(false);
+          }
+        }
+      };
+
+    } catch (err) {
+      console.error('Failed to process WebRTC callee handoff:', err);
+      setIsAcceptingHandoff(false);
+    }
+  }, [id]);
+
   // Handle state change (push state to KV on every ball change / scoring control action)
   const handleStateChange = useCallback(async (newState: MatchState) => {
     if (!newState.matchStarted) {
-      // User clicked "New Match" - redirect to home page for setup
       window.location.href = '/';
       return;
     }
 
-    // 1. Instantly update UI locally so the interface feels extremely fast and responsive
     setState(newState);
 
     if (!isEditor || !editTokenRef.current) return;
 
-    // 2. Push updated state asynchronously to Vercel KV
     try {
       const response = await fetch(`/api/match/${id}`, {
         method: 'PUT',
@@ -157,7 +295,6 @@ export default function MatchPage() {
   const handleTokenHandedOff = useCallback(async (newToken: string) => {
     if (!editTokenRef.current) return;
     try {
-      // Send PUT request to store the new token in KV
       const response = await fetch(`/api/match/${id}`, {
         method: 'PUT',
         headers: {
@@ -174,12 +311,10 @@ export default function MatchPage() {
         throw new Error('Failed to update scoring authority on server');
       }
 
-      // Transition client-side editor rights to read-only spectator
       setIsEditor(false);
       setEditToken(null);
       setShowHandOff(false);
       
-      // Remove token from hash dynamically
       const url = new URL(window.location.href);
       url.hash = '';
       window.history.replaceState(null, '', url.toString());
@@ -257,6 +392,17 @@ export default function MatchPage() {
             📊
           </button>
 
+          {/* Theme Toggle Button */}
+          <button
+            onClick={toggleTheme}
+            className="px-2.5 py-1.5 text-xs font-semibold bg-slate-850 hover:bg-slate-800 text-amber-400 rounded-lg border border-slate-700 transition-colors active:scale-95 touch-manipulation cursor-pointer"
+            title={`Switch to ${
+              theme === 'dark' ? 'Light' : theme === 'light' ? 'Sunlight' : 'Dark'
+            } Mode`}
+          >
+            {theme === 'dark' ? '🌙' : theme === 'light' ? '☀️' : '🕶️'}
+          </button>
+
           {/* Share (read-only spectator link) */}
           <button
             onClick={handleShare}
@@ -302,6 +448,49 @@ export default function MatchPage() {
           state={state}
           onClose={() => setShowScorecard(false)}
         />
+      )}
+
+      {/* Dynamic WebRTC Handoff Receiver Invitation Banner */}
+      {incomingOffer && !isEditor && !isAcceptingHandoff && (
+        <div className="w-full bg-indigo-950 border-b border-indigo-800 px-4 py-3 text-center flex flex-col sm:flex-row items-center justify-center gap-3 animate-[slide-down_0.2s_ease-out] relative z-40">
+          <span className="text-xs text-indigo-200 font-bold uppercase tracking-wider">
+            📥 Incoming Handoff Request! Accept scoring authority for this match?
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => acceptWebRTCHandoff(incomingOffer)}
+              className="px-4 py-1.5 text-xs font-black bg-emerald-500 hover:bg-emerald-400 text-black rounded-lg transition-colors cursor-pointer"
+            >
+              Accept Handoff ⚡
+            </button>
+            <button
+              onClick={() => setIncomingOffer(null)}
+              className="px-4 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-400 rounded-lg transition-colors cursor-pointer"
+            >
+              Ignore
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Callee WebRTC Handoff Connecting Overlay */}
+      {isAcceptingHandoff && (
+        <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/85 backdrop-blur-md" />
+          <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl text-center space-y-4">
+            <div className="relative flex items-center justify-center w-20 h-20 mx-auto">
+              <div className="absolute w-16 h-16 bg-emerald-500/25 rounded-full animate-ping" />
+              <div className="absolute w-12 h-12 bg-emerald-500/40 rounded-full animate-pulse" />
+              <div className="text-3xl">⚡</div>
+            </div>
+            <h2 className="text-lg font-black text-white tracking-tight uppercase">
+              Connecting Scorer...
+            </h2>
+            <p className="text-xs text-slate-400 leading-relaxed px-4">
+              Establishing a secure peer-to-peer WebRTC DataChannel connection. Please stay on this screen...
+            </p>
+          </div>
+        </div>
       )}
 
       {/* Innings Break Modal Display */}

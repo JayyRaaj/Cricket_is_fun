@@ -1,8 +1,77 @@
 @import "tailwindcss";
 
 :root {
+  /* Default: Dark Mode */
   --background: #020617;
   --foreground: #f8fafc;
+  --border-color: #1e293b;
+  --card-bg: #0f172a;
+  --card-border: #1e293b;
+  
+  /* Buttons standard */
+  --btn-dot-runs: #334155;
+  --btn-dot-runs-hover: #475569;
+  --btn-boundary: #10b981;
+  --btn-boundary-hover: #059669;
+  --btn-extras: #f59e0b;
+  --btn-extras-hover: #d97706;
+  --btn-wicket: #ef4444;
+  --btn-wicket-hover: #dc2626;
+  
+  --text-primary: #ffffff;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  --btn-border: transparent;
+  --btn-border-width: 0px;
+}
+
+html.light {
+  --background: #ffffff;
+  --foreground: #000000;
+  --border-color: #000000;
+  --card-bg: #ffffff;
+  --card-border: #000000;
+  
+  --btn-dot-runs: #334155; /* dark grey */
+  --btn-dot-runs-hover: #1e293b;
+  --btn-boundary: #15803d; /* dark green */
+  --btn-boundary-hover: #166534;
+  --btn-extras: #b45309; /* dark amber */
+  --btn-extras-hover: #92400e;
+  --btn-wicket: #b91c1c; /* dark red */
+  --btn-wicket-hover: #991b1b;
+  
+  --text-primary: #000000;
+  --text-secondary: #0f172a;
+  --text-muted: #1e293b;
+  
+  --btn-border: #000000;
+  --btn-border-width: 1px;
+}
+
+html.sunlight {
+  --background: #ffffff;
+  --foreground: #000000;
+  --border-color: #000000;
+  --card-bg: #ffffff;
+  --card-border: #000000;
+  
+  --btn-dot-runs: #000000; /* pure black */
+  --btn-dot-runs-hover: #1e293b;
+  --btn-boundary: #064e3b; /* maximum contrast dark forest green */
+  --btn-boundary-hover: #022c22;
+  --btn-extras: #78350f; /* maximum contrast dark orange/amber */
+  --btn-extras-hover: #451a03;
+  --btn-wicket: #7f1d1d; /* maximum contrast dark crimson */
+  --btn-wicket-hover: #450a0a;
+  
+  --text-primary: #000000;
+  --text-secondary: #000000;
+  --text-muted: #000000;
+  
+  --btn-border: #000000;
+  --btn-border-width: 3px; /* thick black borders */
 }
 
 @theme inline {
@@ -17,7 +86,7 @@
   --animate-pulse-score: pulse-score 0.4s ease-out;
 }
 
-/* Force dark mode always — outdoor sunlight optimized */
+/* Base Body configuration */
 body {
   background: var(--background);
   color: var(--foreground);
@@ -28,6 +97,7 @@ body {
   user-select: none;
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 /* Prevent rubber-banding / pull-to-refresh on mobile */
@@ -77,5 +147,99 @@ button:active {
     padding-left: max(0px, env(safe-area-inset-left));
     padding-right: max(0px, env(safe-area-inset-right));
     padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
+}
+
+/* ========================================================
+   LIGHT & SUNLIGHT MODE OVERRIDES FOR EXISTING TAILWIND CLASSES
+   ======================================================== */
+html.light, html.sunlight {
+  background-color: var(--background) !important;
+  color: var(--foreground) !important;
+
+  .min-h-screen {
+    background: var(--background) !important;
+  }
+
+  /* Overwrite dark panels/containers */
+  .bg-slate-950, .bg-slate-900, .bg-slate-950\/95, .bg-slate-950\/40, .bg-slate-950\/20, .bg-slate-900\/80, .bg-slate-900\/90 {
+    background-color: var(--background) !important;
+    background-image: none !important;
+  }
+  
+  .bg-slate-800, .bg-slate-800\/60, .bg-slate-850, .bg-slate-850\/60, .bg-slate-800\/80, .bg-slate-950\/50, .bg-slate-900\/40 {
+    background-color: var(--card-bg) !important;
+    border-color: var(--border-color) !important;
+  }
+  
+  /* Text color overrides to maximize contrast */
+  .text-white, .text-slate-200, .text-slate-300, .text-indigo-200, .text-sky-200 {
+    color: var(--foreground) !important;
+  }
+  
+  .text-slate-400, .text-slate-500, .text-slate-600, .text-slate-700, .text-slate-800, .text-slate-400\/90 {
+    color: var(--text-secondary) !important;
+  }
+
+  .text-emerald-400, .text-sky-400, .text-amber-400, .text-indigo-400, .text-red-400, .text-amber-300\/70, .text-amber-400\/80 {
+    color: var(--foreground) !important;
+    font-weight: 800 !important;
+  }
+  
+  /* Global borders */
+  .border-slate-800\/50, .border-slate-800\/80, .border-slate-700\/50, .border-slate-700\/60, .border-slate-700, .border-slate-800, .border-slate-900, .border-slate-900\/50, .border-slate-850 {
+    border-color: var(--border-color) !important;
+    border-width: var(--btn-border-width, 1px) !important;
+  }
+  
+  /* Specific Button Color Overrides */
+  /* Runs buttons (0, 1, 2, 3) and Undo/Retire base */
+  .bg-slate-800.text-slate-200, .bg-slate-700.text-slate-200, .bg-slate-700.text-white, .bg-slate-800.text-amber-400, .bg-slate-800.text-red-400 {
+    background-color: var(--btn-dot-runs) !important;
+    color: #ffffff !important;
+    border: var(--btn-border-width) solid var(--btn-border) !important;
+  }
+  
+  /* Boundary buttons (4, 6) */
+  .bg-sky-600, .bg-emerald-600, .bg-emerald-600.text-white, .bg-sky-600.text-white {
+    background-color: var(--btn-boundary) !important;
+    color: #ffffff !important;
+    border: var(--btn-border-width) solid var(--btn-border) !important;
+  }
+  
+  /* Extras (WD, NB, B, LB) */
+  .bg-amber-500, .bg-yellow-600, .bg-orange-600, .bg-orange-700, .bg-yellow-700 {
+    background-color: var(--btn-extras) !important;
+    color: #ffffff !important;
+    border: var(--btn-border-width) solid var(--btn-border) !important;
+  }
+  
+  /* Wickets (WKT) */
+  .bg-red-700, .bg-red-600, .bg-red-600.text-white {
+    background-color: var(--btn-wicket) !important;
+    color: #ffffff !important;
+    border: var(--btn-border-width) solid var(--btn-border) !important;
+  }
+}
+
+/* ========================================================
+   SUNLIGHT HIGH-CONTRAST READABILITY SPECIFICS
+   ======================================================== */
+html.sunlight {
+  .backdrop-blur-md, .backdrop-blur-sm, .backdrop-blur-xl {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  
+  /* Enable thick solid black borders on all interactive elements */
+  button, select, input, textarea, div.border {
+    box-shadow: none !important;
+    border: 3px solid #000000 !important;
+  }
+  
+  /* Heavy score text contrast */
+  .text-7xl, .text-5xl, .text-4xl, .text-3xl {
+    color: #000000 !important;
+    font-weight: 900 !important;
   }
 }

@@ -40,9 +40,33 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-slate-950 text-white">
+      <head>
+        {/* Inline Theme Initialiser script to prevent flash of un-themed content */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('cricket-umpire-theme');
+                  var html = document.documentElement;
+                  html.classList.remove('dark', 'light', 'sunlight');
+                  if (theme === 'light' || theme === 'sunlight') {
+                    html.classList.add(theme);
+                  } else if (theme === 'dark') {
+                    html.classList.add('dark');
+                  } else {
+                    var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    html.classList.add(systemDark ? 'dark' : 'light');
+                  }
+                } catch (e) {}
+              })()
+            `,
+          }}
+        />
+      </head>
+      <body className="min-h-full flex flex-col">
         {children}
       </body>
     </html>
