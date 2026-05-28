@@ -217,17 +217,19 @@ export default function Home() {
         {/* Scoreboard */}
         <Scoreboard state={state} />
 
-        {/* Delivery Log */}
-        <DeliveryLog
-          deliveries={state.deliveries}
-          totalOvers={state.totalOvers}
-        />
+       
 
         {/* Scoring Controls */}
         <ScoringControls
           state={state}
           onStateChange={handleStateChange}
           readOnly={!isEditor}
+        />
+
+         {/* Delivery Log */}
+        <DeliveryLog
+          deliveries={state.deliveries}
+          totalOvers={state.totalOvers}
         />
 
         {/* Footer info */}
