@@ -13,6 +13,8 @@ import Scoreboard from '../../components/Scoreboard';
 import DeliveryLog from '../../components/DeliveryLog';
 import ScoringControls from '../../components/ScoringControls';
 import HandOffModal from '../../components/HandOffModal';
+import ScorecardModal from '../../components/ScorecardModal';
+import { endInnings } from '../../lib/engine';
 
 export default function MatchPage() {
   const params = useParams();
@@ -22,6 +24,7 @@ export default function MatchPage() {
   const [isHydrated, setIsHydrated] = useState(false);
   const [shareToast, setShareToast] = useState(false);
   const [showHandOff, setShowHandOff] = useState(false);
+  const [showScorecard, setShowScorecard] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Editor rights state
@@ -107,6 +110,12 @@ export default function MatchPage() {
 
   // Handle state change (push state to KV on every ball change / scoring control action)
   const handleStateChange = useCallback(async (newState: MatchState) => {
+    if (!newState.matchStarted) {
+      // User clicked "New Match" - redirect to home page for setup
+      window.location.href = '/';
+      return;
+    }
+
     // 1. Instantly update UI locally so the interface feels extremely fast and responsive
     setState(newState);
 
@@ -239,10 +248,19 @@ export default function MatchPage() {
             vs {state.teamBowling}
           </span>
 
+          {/* Scorecard Button */}
+          <button
+            onClick={() => setShowScorecard(true)}
+            className="px-2.5 py-1.5 text-xs font-semibold bg-slate-850 hover:bg-slate-800 text-sky-400 rounded-lg border border-slate-700 transition-colors active:scale-95 touch-manipulation cursor-pointer"
+            title="Open Scorecard"
+          >
+            📊
+          </button>
+
           {/* Share (read-only spectator link) */}
           <button
             onClick={handleShare}
-            className="px-2.5 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg border border-slate-700 transition-colors active:scale-95 touch-manipulation"
+            className="px-2.5 py-1.5 text-xs font-semibold bg-slate-850 hover:bg-slate-800 text-amber-400 rounded-lg border border-slate-700 transition-colors active:scale-95 touch-manipulation cursor-pointer"
             title="Copy spectator link"
           >
             📋
@@ -252,7 +270,7 @@ export default function MatchPage() {
           {isEditor && (
             <button
               onClick={() => setShowHandOff(true)}
-              className="px-2.5 py-1.5 text-xs font-semibold bg-indigo-800 hover:bg-indigo-700 text-indigo-200 rounded-lg border border-indigo-600 transition-colors active:scale-95 touch-manipulation"
+              className="px-2.5 py-1.5 text-xs font-semibold bg-indigo-900/80 hover:bg-indigo-850 text-indigo-200 rounded-lg border border-indigo-700/60 transition-colors active:scale-95 touch-manipulation cursor-pointer"
               title="Hand off scoring to another umpire"
             >
               📲
@@ -276,6 +294,52 @@ export default function MatchPage() {
           onClose={() => setShowHandOff(false)}
           onTokenHandedOff={handleTokenHandedOff}
         />
+      )}
+
+      {/* Scorecard Modal */}
+      {showScorecard && (
+        <ScorecardModal
+          state={state}
+          onClose={() => setShowScorecard(false)}
+        />
+      )}
+
+      {/* Innings Break Modal Display */}
+      {state.currentInnings === 1 && state.isInningsComplete && !state.isMatchComplete && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/85 backdrop-blur-md" />
+          <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl text-center space-y-5 animate-[scale-up_0.2s_ease-out]">
+            <div className="text-5xl">⛳</div>
+            <h2 className="text-2xl font-black text-white tracking-tight">
+              Innings Break
+            </h2>
+            <div className="bg-slate-950/50 border border-slate-850 rounded-2xl py-4 px-4">
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                First Innings Completed
+              </p>
+              <p className="text-3xl font-black text-white font-mono mt-1">
+                {state.totalRuns}/{state.totalWickets}
+              </p>
+              <p className="text-xs text-amber-400 mt-2 font-bold uppercase tracking-wider">
+                Target: {state.totalRuns + 1} runs
+              </p>
+            </div>
+            
+            {/* Start 2nd Innings button (Editor only) */}
+            {isEditor ? (
+              <button
+                onClick={() => handleStateChange(endInnings(state))}
+                className="w-full py-4 text-base font-black bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black rounded-2xl transition-all cursor-pointer"
+              >
+                Start 2nd Innings 🏏
+              </button>
+            ) : (
+              <p className="text-xs text-slate-500 italic">
+                Waiting for the active editor to start the 2nd innings...
+              </p>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Main scoring / scoreboard content */}
