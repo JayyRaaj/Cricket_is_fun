@@ -891,3 +891,70 @@ button:active {
   border-radius: 4px;
   opacity: 0.3;
 }
+
+
+
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal-card {
+  width: 320px;
+  background: var(--surface);
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.run-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.run-pill {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--surface-secondary);
+}
+
+.run-pill.active {
+  background: var(--orange);
+  color: white;
+}
+
+.adjuster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.adjuster button {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
