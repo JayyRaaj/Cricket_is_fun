@@ -114,7 +114,7 @@ export default function ScoringControls({
         </div>
       )}
 
-      {/* 2. Bowler Selector — horizontal pill scroll */}
+      {/* 2. Bowler Selector — horizontal pill scroll
       {!disabled && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <span className="label-caps" style={{ paddingLeft: '4px' }}>Bowler</span>
@@ -130,7 +130,7 @@ export default function ScoringControls({
             ))}
           </div>
         </div>
-      )}
+      )} */}
 
       {/* 3. Scoring Circle Buttons — 4-column grid */}
       {!state.isMatchComplete && !readOnly && !isEnteringWicket && !isEnteringRetire && (
@@ -179,12 +179,28 @@ export default function ScoringControls({
               WD
             </button>
             <button
-              className="score-btn extras"
-              disabled={disabled}
-              onClick={() => onStateChange(addNoBall(state, 0))}
-            >
-              NB
-            </button>
+  className="score-btn extras"
+  disabled={disabled}
+  onClick={() => {
+    const input = window.prompt(
+      'Additional runs scored off the no-ball?\n\nExamples:\n0 = only NB\n1 = NB + single\n4 = NB boundary',
+      '0'
+    );
+
+    if (input === null) return;
+
+    const additionalRuns = parseInt(input, 10);
+
+    if (isNaN(additionalRuns) || additionalRuns < 0) {
+      alert('Please enter a valid number');
+      return;
+    }
+
+    onStateChange(addNoBall(state, additionalRuns));
+  }}
+>
+  NB
+</button>
 
             {/* Row 3: WKT, BYE, LB, UNDO */}
             <button
