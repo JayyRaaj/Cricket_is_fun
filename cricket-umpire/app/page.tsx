@@ -48,10 +48,24 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-5xl mb-4 animate-bounce">🏏</div>
-          <p className="text-slate-400 text-lg">Initializing match on server...</p>
+      <div style={{
+        minHeight: '100vh',
+        background: 'var(--bg)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            fontSize: 48,
+            marginBottom: 16,
+            animation: 'pulse-score 1.5s ease-in-out infinite',
+          }}>🏏</div>
+          <p style={{
+            fontSize: 17,
+            fontWeight: 500,
+            color: 'var(--text-secondary)',
+          }}>Setting up match...</p>
         </div>
       </div>
     );
@@ -60,8 +74,16 @@ export default function Home() {
   return (
     <>
       {error && (
-        <div className="bg-red-900/80 border border-red-700 text-red-100 px-4 py-3 text-center text-sm font-semibold">
-          Error: {error}
+        <div style={{
+          padding: '12px 16px',
+          background: 'color-mix(in srgb, var(--destructive) 10%, var(--bg))',
+          borderBottom: '1px solid color-mix(in srgb, var(--destructive) 30%, transparent)',
+          textAlign: 'center',
+          fontSize: 14,
+          fontWeight: 600,
+          color: 'var(--destructive)',
+        }}>
+          {error}
         </div>
       )}
       <MatchSetup onStart={handleMatchStart} />

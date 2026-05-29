@@ -1,124 +1,863 @@
-@import "tailwindcss";
+/* ============================================================
+   Cricket Umpire — iOS-Native Design System
+   Apple HIG spacing (8px grid), SF Pro typography, 3 themes
+   ============================================================ */
 
+/* --- Dark Mode (default) --- */
 :root {
-  /* Default: Dark Mode */
-  --background: #020617;
-  --foreground: #f8fafc;
-  --border-color: #1e293b;
-  --card-bg: #0f172a;
-  --card-border: #1e293b;
-  
-  /* Buttons standard */
-  --btn-dot-runs: #334155;
-  --btn-dot-runs-hover: #475569;
-  --btn-boundary: #10b981;
-  --btn-boundary-hover: #059669;
-  --btn-extras: #f59e0b;
-  --btn-extras-hover: #d97706;
-  --btn-wicket: #ef4444;
-  --btn-wicket-hover: #dc2626;
-  
-  --text-primary: #ffffff;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  
-  --btn-border: transparent;
-  --btn-border-width: 0px;
+  --bg: #000000;
+  --surface: #1C1C1E;
+  --text: #FFFFFF;
+  --text-secondary: #8E8E93;
+  --accent: #0A84FF;
+  --destructive: #FF453A;
+  --green: #34C759;
+  --orange: #FF9F0A;
+  --grey: #8E8E93;
+
+  --radius-card: 12px;
+  --radius-button: 32px;
+  --radius-pill: 8px;
 }
 
+/* --- Light Mode --- */
 html.light {
-  --background: #ffffff;
-  --foreground: #000000;
-  --border-color: #000000;
-  --card-bg: #ffffff;
-  --card-border: #000000;
-  
-  --btn-dot-runs: #334155; /* dark grey */
-  --btn-dot-runs-hover: #1e293b;
-  --btn-boundary: #15803d; /* dark green */
-  --btn-boundary-hover: #166534;
-  --btn-extras: #b45309; /* dark amber */
-  --btn-extras-hover: #92400e;
-  --btn-wicket: #b91c1c; /* dark red */
-  --btn-wicket-hover: #991b1b;
-  
-  --text-primary: #000000;
-  --text-secondary: #0f172a;
-  --text-muted: #1e293b;
-  
-  --btn-border: #000000;
-  --btn-border-width: 1px;
+  --bg: #F2F2F7;
+  --surface: #FFFFFF;
+  --text: #000000;
+  --text-secondary: #6C6C70;
+  --accent: #007AFF;
+  --destructive: #FF3B30;
+  --green: #34C759;
+  --orange: #FF9F0A;
+  --grey: #8E8E93;
 }
 
+/* --- Sunlight Mode --- */
 html.sunlight {
-  --background: #ffffff;
-  --foreground: #000000;
-  --border-color: #000000;
-  --card-bg: #ffffff;
-  --card-border: #000000;
-  
-  --btn-dot-runs: #000000; /* pure black */
-  --btn-dot-runs-hover: #1e293b;
-  --btn-boundary: #064e3b; /* maximum contrast dark forest green */
-  --btn-boundary-hover: #022c22;
-  --btn-extras: #78350f; /* maximum contrast dark orange/amber */
-  --btn-extras-hover: #451a03;
-  --btn-wicket: #7f1d1d; /* maximum contrast dark crimson */
-  --btn-wicket-hover: #450a0a;
-  
-  --text-primary: #000000;
-  --text-secondary: #000000;
-  --text-muted: #000000;
-  
-  --btn-border: #000000;
-  --btn-border-width: 3px; /* thick black borders */
+  --bg: #FFFFFF;
+  --surface: #F2F2F7;
+  --text: #000000;
+  --text-secondary: #3A3A3C;
+  --accent: #0040DD;
+  --destructive: #C60000;
+  --green: #248A3D;
+  --orange: #C93400;
+  --grey: #636366;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-
-  /* Custom animation tokens */
-  --animate-fade-in: fade-in 0.3s ease-out;
-  --animate-slide-up: slide-up 0.3s ease-out;
-  --animate-pulse-score: pulse-score 0.4s ease-out;
+/* ============================================================
+   Base
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-/* Base Body configuration */
+html {
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, 'SF Pro Display', 'SF Pro Text', system-ui, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
   user-select: none;
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Prevent rubber-banding / pull-to-refresh on mobile */
 html, body {
   overflow-x: hidden;
   position: relative;
 }
 
-/* Scrollbar styling */
-.scrollbar-thin::-webkit-scrollbar {
-  width: 4px;
-}
-.scrollbar-thin::-webkit-scrollbar-track {
-  background: transparent;
-}
-.scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 4px;
+/* Safe area for notched phones */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
 }
 
-/* Animations */
+/* ============================================================
+   Typography
+   ============================================================ */
+.score-massive {
+  font-size: 72px;
+  font-weight: 700;
+  letter-spacing: -2px;
+  line-height: 1;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.score-wickets {
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  line-height: 1;
+  color: var(--text);
+  opacity: 0.5;
+  font-variant-numeric: tabular-nums;
+}
+
+.overs-text {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.label-caps {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text);
+  opacity: 0.4;
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-primary {
+  color: var(--text);
+}
+
+/* ============================================================
+   Layout Utilities
+   ============================================================ */
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.gap-8 { gap: 8px; }
+.gap-16 { gap: 16px; }
+.gap-24 { gap: 24px; }
+
+.p-16 { padding: 16px; }
+.p-24 { padding: 24px; }
+.px-16 { padding-left: 16px; padding-right: 16px; }
+.py-8 { padding-top: 8px; padding-bottom: 8px; }
+
+/* ============================================================
+   Navigation Bar (44px iOS-style)
+   ============================================================ */
+.nav-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: var(--bg);
+  border-bottom: 0.5px solid var(--text-secondary);
+  border-bottom-color: color-mix(in srgb, var(--text-secondary) 20%, transparent);
+  transition: background-color 0.2s ease;
+}
+
+html.sunlight .nav-bar {
+  border-bottom: 1px solid var(--text-secondary);
+  box-shadow: none;
+}
+
+.nav-bar .nav-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.nav-bar .nav-left .nav-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-bar .nav-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.nav-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: var(--radius-pill);
+  color: var(--accent);
+  font-size: 18px;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.nav-btn:active {
+  opacity: 0.5;
+  transform: scale(0.9);
+}
+
+/* Editor indicator dot */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.editor {
+  background: var(--green);
+}
+
+.status-dot.viewer {
+  background: var(--orange);
+}
+
+/* ============================================================
+   Scoring Buttons (64px circles in 4-col grid)
+   ============================================================ */
+.scoring-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding: 24px 16px;
+  justify-items: center;
+}
+
+.score-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-button);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.1s ease, opacity 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  min-width: 44px;
+  min-height: 44px;
+  position: relative;
+}
+
+.score-btn:active {
+  transform: scale(0.94);
+}
+
+.score-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Default runs (DOT, 1, 2, 3) */
+.score-btn.runs {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 20%, transparent);
+}
+
+/* Boundaries (4, 6) */
+.score-btn.boundary {
+  background: var(--green);
+  color: #FFFFFF;
+}
+
+/* Extras (WD, NB) */
+.score-btn.extras {
+  background: var(--orange);
+  color: #FFFFFF;
+}
+
+/* Wicket */
+.score-btn.wicket {
+  background: var(--destructive);
+  color: #FFFFFF;
+}
+
+/* Byes / Leg Byes */
+.score-btn.byes {
+  background: var(--grey);
+  color: #FFFFFF;
+}
+
+/* Undo — text-only */
+.score-btn.undo {
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+}
+
+/* Sunlight mode: no shadows, maximum contrast, borders */
+html.sunlight .score-btn {
+  box-shadow: none;
+}
+
+html.sunlight .score-btn.runs {
+  border: 1.5px solid var(--text-secondary);
+}
+
+/* ============================================================
+   Cards / Surface
+   ============================================================ */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius-card);
+  transition: background-color 0.2s ease;
+}
+
+html.sunlight .card {
+  box-shadow: none;
+  border: 1px solid var(--text-secondary);
+}
+
+/* ============================================================
+   Scorecard / Sheet overlay (iOS sheet from bottom)
+   ============================================================ */
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  transition: opacity 0.3s ease;
+}
+
+html.light .sheet-backdrop,
+html.sunlight .sheet-backdrop {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.sheet-content {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  background: var(--bg);
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: sheet-slide-up 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes sheet-slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.sheet-handle {
+  width: 36px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--text-secondary);
+  opacity: 0.3;
+  margin: 8px auto 0;
+  flex-shrink: 0;
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 8px;
+}
+
+.sheet-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.sheet-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: none;
+  color: var(--text-secondary);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Sheet tab bar */
+.sheet-tabs {
+  display: flex;
+  padding: 0 16px;
+  gap: 0;
+  border-bottom: 0.5px solid color-mix(in srgb, var(--text-secondary) 20%, transparent);
+}
+
+.sheet-tab {
+  flex: 1;
+  padding: 12px 0;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  min-height: 44px;
+}
+
+.sheet-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.sheet-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============================================================
+   Tables (Scorecard)
+   ============================================================ */
+.scorecard-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.scorecard-table th {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  padding: 8px;
+  text-align: left;
+  border: none;
+}
+
+.scorecard-table th.right {
+  text-align: right;
+}
+
+.scorecard-table td {
+  padding: 10px 8px;
+  color: var(--text);
+  font-weight: 500;
+  border: none;
+}
+
+.scorecard-table td.right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.scorecard-table td.muted {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.scorecard-table td.bold {
+  font-weight: 700;
+}
+
+/* Alternating row backgrounds */
+.scorecard-table tbody tr:nth-child(odd) {
+  background: var(--surface);
+}
+
+.scorecard-table tbody tr:nth-child(even) {
+  background: var(--bg);
+}
+
+.scorecard-table tbody tr.active-player {
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+/* ============================================================
+   Bowler selector (horizontal pill scroll)
+   ============================================================ */
+.bowler-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 0;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.bowler-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.bowler-pill {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: var(--radius-button);
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 25%, transparent);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.bowler-pill.active {
+  background: var(--accent);
+  color: #FFFFFF;
+  border-color: var(--accent);
+}
+
+.bowler-pill:active {
+  transform: scale(0.96);
+}
+
+/* ============================================================
+   Modals / Fullscreen takeover
+   ============================================================ */
+.fullscreen-takeover {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  animation: fade-in 0.25s ease;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+html.light .modal-backdrop,
+html.sunlight .modal-backdrop {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  background: var(--surface);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  animation: modal-scale-up 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+html.sunlight .modal-card {
+  box-shadow: none;
+  border: 1px solid var(--text-secondary);
+}
+
+@keyframes modal-scale-up {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ============================================================
+   Action buttons (forms, confirmations)
+   ============================================================ */
+.btn-primary {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: var(--radius-card);
+  background: var(--accent);
+  color: #FFFFFF;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s ease, opacity 0.15s ease;
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-primary.destructive {
+  background: var(--destructive);
+}
+
+.btn-primary.green {
+  background: var(--green);
+}
+
+.btn-secondary {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s ease, opacity 0.15s ease;
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+.btn-secondary:active {
+  transform: scale(0.98);
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 16px;
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+.btn-text.destructive {
+  color: var(--destructive);
+}
+
+/* ============================================================
+   Form elements
+   ============================================================ */
+.input-field {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 25%, transparent);
+  border-radius: var(--radius-card);
+  color: var(--text);
+  font-size: 17px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease;
+  min-height: 44px;
+}
+
+html.sunlight .input-field {
+  border: 1.5px solid var(--text-secondary);
+}
+
+.input-field:focus {
+  border-color: var(--accent);
+}
+
+.input-field::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+select.input-field {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238E8E93' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+textarea.input-field {
+  resize: none;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   Delivery log
+   ============================================================ */
+.delivery-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.delivery-chip.dot { background: var(--surface); color: var(--text-secondary); border: 1px solid color-mix(in srgb, var(--text-secondary) 20%, transparent); }
+.delivery-chip.runs { background: var(--surface); color: var(--text); border: 1px solid color-mix(in srgb, var(--text-secondary) 20%, transparent); }
+.delivery-chip.four { background: var(--green); color: #fff; }
+.delivery-chip.six { background: var(--green); color: #fff; }
+.delivery-chip.wicket { background: var(--destructive); color: #fff; }
+.delivery-chip.wide { background: var(--orange); color: #fff; }
+.delivery-chip.noball { background: var(--orange); color: #fff; }
+.delivery-chip.bye { background: var(--grey); color: #fff; }
+
+/* ============================================================
+   Stats drawer (swipe up from bottom)
+   ============================================================ */
+.stats-drawer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--surface);
+  border-radius: 16px 16px 0 0;
+  max-height: 60vh;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.stats-drawer.open {
+  transform: translateY(0);
+}
+
+.stats-drawer .drawer-handle {
+  width: 36px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--text-secondary);
+  opacity: 0.3;
+  margin: 8px auto 16px;
+}
+
+/* ============================================================
+   Read-only banner
+   ============================================================ */
+.readonly-banner {
+  padding: 10px 16px;
+  background: color-mix(in srgb, var(--orange) 10%, var(--bg));
+  border: 1px solid color-mix(in srgb, var(--orange) 20%, transparent);
+  border-radius: var(--radius-card);
+  text-align: center;
+}
+
+.readonly-banner p {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* ============================================================
+   Toast
+   ============================================================ */
+.toast {
+  position: fixed;
+  top: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: var(--green);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: var(--radius-button);
+  animation: fade-in 0.2s ease;
+}
+
+/* ============================================================
+   Match result banner
+   ============================================================ */
+.match-result {
+  text-align: center;
+  padding: 24px;
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--green) 10%, var(--bg));
+  border: 1px solid color-mix(in srgb, var(--green) 20%, transparent);
+}
+
+.match-result .result-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--green);
+  margin-bottom: 4px;
+}
+
+.match-result .result-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* ============================================================
+   Animations
+   ============================================================ */
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -131,115 +870,24 @@ html, body {
 
 @keyframes pulse-score {
   0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+  50% { transform: scale(1.03); }
   100% { transform: scale(1); }
 }
 
-/* Haptic-like feedback for touch */
+/* Global button active state */
 button:active {
-  transform: scale(0.95);
-  transition: transform 0.08s ease-out;
+  transition: transform 0.1s ease;
 }
 
-/* Safe area for notched phones */
-@supports (padding: max(0px)) {
-  body {
-    padding-left: max(0px, env(safe-area-inset-left));
-    padding-right: max(0px, env(safe-area-inset-right));
-    padding-bottom: max(0px, env(safe-area-inset-bottom));
-  }
+/* Scrollbar styling */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
 }
-
-/* ========================================================
-   LIGHT & SUNLIGHT MODE OVERRIDES FOR EXISTING TAILWIND CLASSES
-   ======================================================== */
-html.light, html.sunlight {
-  background-color: var(--background) !important;
-  color: var(--foreground) !important;
-
-  .min-h-screen {
-    background: var(--background) !important;
-  }
-
-  /* Overwrite dark panels/containers */
-  .bg-slate-950, .bg-slate-900, .bg-slate-950\/95, .bg-slate-950\/40, .bg-slate-950\/20, .bg-slate-900\/80, .bg-slate-900\/90 {
-    background-color: var(--background) !important;
-    background-image: none !important;
-  }
-  
-  .bg-slate-800, .bg-slate-800\/60, .bg-slate-850, .bg-slate-850\/60, .bg-slate-800\/80, .bg-slate-950\/50, .bg-slate-900\/40 {
-    background-color: var(--card-bg) !important;
-    border-color: var(--border-color) !important;
-  }
-  
-  /* Text color overrides to maximize contrast */
-  .text-white, .text-slate-200, .text-slate-300, .text-indigo-200, .text-sky-200 {
-    color: var(--foreground) !important;
-  }
-  
-  .text-slate-400, .text-slate-500, .text-slate-600, .text-slate-700, .text-slate-800, .text-slate-400\/90 {
-    color: var(--text-secondary) !important;
-  }
-
-  .text-emerald-400, .text-sky-400, .text-amber-400, .text-indigo-400, .text-red-400, .text-amber-300\/70, .text-amber-400\/80 {
-    color: var(--foreground) !important;
-    font-weight: 800 !important;
-  }
-  
-  /* Global borders */
-  .border-slate-800\/50, .border-slate-800\/80, .border-slate-700\/50, .border-slate-700\/60, .border-slate-700, .border-slate-800, .border-slate-900, .border-slate-900\/50, .border-slate-850 {
-    border-color: var(--border-color) !important;
-    border-width: var(--btn-border-width, 1px) !important;
-  }
-  
-  /* Specific Button Color Overrides */
-  /* Runs buttons (0, 1, 2, 3) and Undo/Retire base */
-  .bg-slate-800.text-slate-200, .bg-slate-700.text-slate-200, .bg-slate-700.text-white, .bg-slate-800.text-amber-400, .bg-slate-800.text-red-400 {
-    background-color: var(--btn-dot-runs) !important;
-    color: #ffffff !important;
-    border: var(--btn-border-width) solid var(--btn-border) !important;
-  }
-  
-  /* Boundary buttons (4, 6) */
-  .bg-sky-600, .bg-emerald-600, .bg-emerald-600.text-white, .bg-sky-600.text-white {
-    background-color: var(--btn-boundary) !important;
-    color: #ffffff !important;
-    border: var(--btn-border-width) solid var(--btn-border) !important;
-  }
-  
-  /* Extras (WD, NB, B, LB) */
-  .bg-amber-500, .bg-yellow-600, .bg-orange-600, .bg-orange-700, .bg-yellow-700 {
-    background-color: var(--btn-extras) !important;
-    color: #ffffff !important;
-    border: var(--btn-border-width) solid var(--btn-border) !important;
-  }
-  
-  /* Wickets (WKT) */
-  .bg-red-700, .bg-red-600, .bg-red-600.text-white {
-    background-color: var(--btn-wicket) !important;
-    color: #ffffff !important;
-    border: var(--btn-border-width) solid var(--btn-border) !important;
-  }
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
 }
-
-/* ========================================================
-   SUNLIGHT HIGH-CONTRAST READABILITY SPECIFICS
-   ======================================================== */
-html.sunlight {
-  .backdrop-blur-md, .backdrop-blur-sm, .backdrop-blur-xl {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
-  
-  /* Enable thick solid black borders on all interactive elements */
-  button, select, input, textarea, div.border {
-    box-shadow: none !important;
-    border: 3px solid #000000 !important;
-  }
-  
-  /* Heavy score text contrast */
-  .text-7xl, .text-5xl, .text-4xl, .text-3xl {
-    color: #000000 !important;
-    font-weight: 900 !important;
-  }
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--text-secondary);
+  border-radius: 4px;
+  opacity: 0.3;
 }

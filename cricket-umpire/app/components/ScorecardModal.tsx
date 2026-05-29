@@ -88,202 +88,212 @@ export default function ScorecardModal({ state, onClose }: ScorecardModalProps) 
   }
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+    <div className="sheet-overlay">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/85 backdrop-blur-md"
-        onClick={onClose}
-      />
+      <div className="sheet-backdrop" onClick={onClose} />
 
-      {/* Modal Card */}
-      <div className="relative w-full max-w-lg bg-slate-950 border border-slate-800 rounded-3xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
+      {/* Sheet Content */}
+      <div className="sheet-content">
+        {/* Drag Handle */}
+        <div className="sheet-handle" />
+
         {/* Header */}
-        <div className="p-5 border-b border-slate-850 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">📊</span>
-            <h2 className="text-lg font-black text-white tracking-tight">
-              Match Scorecard
-            </h2>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-900 border border-slate-800 hover:bg-slate-800 hover:text-white text-slate-400 text-sm flex items-center justify-center transition-colors"
-          >
-            ✕
+        <div className="sheet-header">
+          <h2>Scorecard</h2>
+          <button className="sheet-close" onClick={onClose}>
+            ×
           </button>
         </div>
 
-        {/* Tab Buttons */}
-        <div className="flex border-b border-slate-900 bg-slate-950">
+        {/* Tabs */}
+        <div className="sheet-tabs">
           <button
+            className={`sheet-tab${activeTab === 'first' ? ' active' : ''}`}
             onClick={() => setActiveTab('first')}
-            className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${
-              activeTab === 'first'
-                ? 'border-amber-500 text-amber-400 bg-slate-900/40'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
           >
             {firstInningsBatTeam}
           </button>
           <button
+            className={`sheet-tab${activeTab === 'second' ? ' active' : ''}`}
             onClick={() => setActiveTab('second')}
-            className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${
-              activeTab === 'second'
-                ? 'border-amber-500 text-amber-400 bg-slate-900/40'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
           >
             {secondInningsBatTeam}
           </button>
         </div>
 
-        {/* Scorecard Content */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-5">
+        {/* Body */}
+        <div className="sheet-body">
           {!hasInningsStarted ? (
-            <div className="text-center py-12">
-              <p className="text-5xl mb-4 opacity-50">⏳</p>
-              <p className="text-slate-400 font-medium">Innings has not started yet</p>
-              <p className="text-xs text-slate-600 mt-1">Score the first innings to unlock this scorecard.</p>
+            <div style={{
+              textAlign: 'center',
+              padding: '48px 16px',
+            }}>
+              <p style={{
+                fontSize: 15,
+                color: 'var(--text-secondary)',
+                fontWeight: 500,
+              }}>
+                Innings has not started yet
+              </p>
             </div>
           ) : (
             <>
-              {/* Quick Summary Banner */}
-              <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 flex justify-between items-center">
+              {/* Summary Banner */}
+              <div style={{
+                background: 'var(--surface)',
+                borderRadius: 'var(--radius-card)',
+                padding: 16,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 16,
+              }}>
                 <div>
-                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-                    {teamName} Batting
-                  </h3>
-                  <p className="text-2xl font-black text-white mt-1">
+                  <div style={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    textTransform: 'uppercase' as const,
+                    letterSpacing: '0.05em',
+                    color: 'var(--text-secondary)',
+                    marginBottom: 4,
+                  }}>
+                    {teamName}
+                  </div>
+                  <div style={{
+                    fontSize: 24,
+                    fontWeight: 700,
+                    color: 'var(--text)',
+                    fontVariantNumeric: 'tabular-nums',
+                  }}>
                     {inningsScore}
-                  </p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <span className="text-xs font-mono bg-slate-800 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700/50">
-                    {inningsOvers} Overs
-                  </span>
-                </div>
+                <span style={{
+                  fontSize: 13,
+                  color: 'var(--text-secondary)',
+                  fontWeight: 500,
+                  background: 'var(--bg)',
+                  padding: '4px 10px',
+                  borderRadius: 'var(--radius-pill)',
+                  fontVariantNumeric: 'tabular-nums',
+                }}>
+                  {inningsOvers} ov
+                </span>
               </div>
 
-              {/* Batting Table */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1">
+              {/* Batting Section */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  textTransform: 'uppercase' as const,
+                  letterSpacing: '0.05em',
+                  color: 'var(--text-secondary)',
+                  padding: '0 8px 8px',
+                }}>
                   Batting
-                </h4>
-                <div className="overflow-x-auto rounded-2xl border border-slate-900 bg-slate-950">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="border-b border-slate-900 bg-slate-900/30 text-slate-500 font-bold uppercase tracking-wider">
-                        <th className="py-2.5 px-3">Batter</th>
-                        <th className="py-2.5 px-1">How Out</th>
-                        <th className="py-2.5 px-2 text-right">R</th>
-                        <th className="py-2.5 px-2 text-right">B</th>
-                        <th className="py-2.5 px-2 text-right">4s</th>
-                        <th className="py-2.5 px-2 text-right">6s</th>
-                        <th className="py-2.5 px-3 text-right">SR</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-900/50 font-medium">
-                      {battingList.map((player, idx) => (
+                </div>
+                <table className="scorecard-table">
+                  <thead>
+                    <tr>
+                      <th>Batter</th>
+                      <th className="right">R</th>
+                      <th className="right">B</th>
+                      <th className="right">4s</th>
+                      <th className="right">6s</th>
+                      <th className="right">SR</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {battingList.map((player, idx) => {
+                      const isActive =
+                        player.dismissal === 'Not Out' &&
+                        (state.strikerName === player.name || state.nonStrikerName === player.name);
+                      return (
                         <tr
                           key={idx}
-                          className={
-                            player.dismissal === 'Not Out' &&
-                            (state.strikerName === player.name || state.nonStrikerName === player.name)
-                              ? 'text-amber-400 bg-amber-500/5'
-                              : 'text-slate-300 hover:bg-slate-900/25'
-                          }
+                          className={isActive ? 'active-player' : ''}
                         >
-                          <td className="py-2.5 px-3 font-semibold break-words max-w-[100px]">
-                            {player.name}
-                            {player.dismissal === 'Not Out' && state.strikerName === player.name && ' *'}
+                          <td>
+                            <div style={{ fontWeight: 600 }}>
+                              {player.name}
+                              {player.dismissal === 'Not Out' && state.strikerName === player.name && ' *'}
+                            </div>
+                            <div style={{
+                              fontSize: 11,
+                              color: 'var(--text-secondary)',
+                              fontWeight: 400,
+                              marginTop: 1,
+                            }}>
+                              {player.dismissal}
+                            </div>
                           </td>
-                          <td className="py-2.5 px-1 text-slate-500 text-[10px] italic">
-                            {player.dismissal}
-                          </td>
-                          <td className="py-2.5 px-2 text-right font-black">
-                            {player.runs}
-                          </td>
-                          <td className="py-2.5 px-2 text-right font-mono text-slate-400">
-                            {player.balls}
-                          </td>
-                          <td className="py-2.5 px-2 text-right text-slate-400">
-                            {player.fours}
-                          </td>
-                          <td className="py-2.5 px-2 text-right text-slate-400">
-                            {player.sixes}
-                          </td>
-                          <td className="py-2.5 px-3 text-right font-mono text-slate-500">
-                            {getStrikeRate(player.runs, player.balls)}
-                          </td>
+                          <td className="right bold">{player.runs}</td>
+                          <td className="right muted">{player.balls}</td>
+                          <td className="right muted">{player.fours}</td>
+                          <td className="right muted">{player.sixes}</td>
+                          <td className="right muted">{getStrikeRate(player.runs, player.balls)}</td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
 
-              {/* Extras line */}
-              <div className="bg-slate-900/40 border border-slate-900 rounded-2xl p-3 flex justify-between items-center text-xs">
-                <span className="font-bold text-slate-400 uppercase tracking-wider">
-                  Extras
-                </span>
-                <span className="font-mono text-slate-300">
-                  <span className="font-black text-white">{extrasInfo.total}</span> (wd {extrasInfo.wd}, nb {extrasInfo.nb}, b {extrasInfo.b}, lb {extrasInfo.lb})
-                </span>
+              {/* Extras */}
+              <div style={{
+                fontSize: 13,
+                color: 'var(--text-secondary)',
+                padding: '8px',
+                marginBottom: 16,
+              }}>
+                Extras: <span style={{ fontWeight: 600, color: 'var(--text)' }}>{extrasInfo.total}</span>{' '}
+                (wd {extrasInfo.wd}, nb {extrasInfo.nb}, b {extrasInfo.b}, lb {extrasInfo.lb})
               </div>
 
-              {/* Bowling Table */}
+              {/* Bowling Section */}
               {bowlingList.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1">
+                <div>
+                  <div style={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    textTransform: 'uppercase' as const,
+                    letterSpacing: '0.05em',
+                    color: 'var(--text-secondary)',
+                    padding: '0 8px 8px',
+                  }}>
                     Bowling
-                  </h4>
-                  <div className="overflow-x-auto rounded-2xl border border-slate-900 bg-slate-950">
-                    <table className="w-full text-left text-xs border-collapse">
-                      <thead>
-                        <tr className="border-b border-slate-900 bg-slate-900/30 text-slate-500 font-bold uppercase tracking-wider">
-                          <th className="py-2.5 px-3">Bowler</th>
-                          <th className="py-2.5 px-2 text-right">O</th>
-                          <th className="py-2.5 px-2 text-right">M</th>
-                          <th className="py-2.5 px-2 text-right">R</th>
-                          <th className="py-2.5 px-2 text-right">W</th>
-                          <th className="py-2.5 px-3 text-right">Eco</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-900/50 text-slate-300 font-medium">
-                        {bowlingList.map((player, idx) => (
+                  </div>
+                  <table className="scorecard-table">
+                    <thead>
+                      <tr>
+                        <th>Bowler</th>
+                        <th className="right">O</th>
+                        <th className="right">M</th>
+                        <th className="right">R</th>
+                        <th className="right">W</th>
+                        <th className="right">Eco</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bowlingList.map((player, idx) => {
+                        const isActive = state.currentBowlerName === player.name;
+                        return (
                           <tr
                             key={idx}
-                            className={
-                              state.currentBowlerName === player.name
-                                ? 'text-amber-400 bg-amber-500/5'
-                                : 'hover:bg-slate-900/25'
-                            }
+                            className={isActive ? 'active-player' : ''}
                           >
-                            <td className="py-2.5 px-3 font-semibold break-words max-w-[120px]">
-                              {player.name}
-                              {state.currentBowlerName === player.name && ' 🏏'}
-                            </td>
-                            <td className="py-2.5 px-2 text-right font-mono">
-                              {formatOvers(player.balls)}
-                            </td>
-                            <td className="py-2.5 px-2 text-right">
-                              {player.maidens}
-                            </td>
-                            <td className="py-2.5 px-2 text-right">
-                              {player.runsConceded}
-                            </td>
-                            <td className="py-2.5 px-2 text-right font-black">
-                              {player.wickets}
-                            </td>
-                            <td className="py-2.5 px-3 text-right font-mono text-slate-500">
-                              {getEconomy(player.runsConceded, player.balls)}
-                            </td>
+                            <td style={{ fontWeight: 600 }}>{player.name}</td>
+                            <td className="right muted">{formatOvers(player.balls)}</td>
+                            <td className="right muted">{player.maidens}</td>
+                            <td className="right">{player.runsConceded}</td>
+                            <td className="right bold">{player.wickets}</td>
+                            <td className="right muted">{getEconomy(player.runsConceded, player.balls)}</td>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </>

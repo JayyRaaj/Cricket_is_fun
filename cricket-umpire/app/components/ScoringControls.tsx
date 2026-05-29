@@ -55,11 +55,6 @@ export default function ScoringControls({
 
   const bowlersList = getActiveBowlers(state);
 
-  const circleBtnBase =
-    'w-14 h-14 rounded-full flex flex-col items-center justify-center font-black text-base shadow-md transition-all active:scale-[0.9] disabled:opacity-30 disabled:cursor-not-allowed select-none touch-manipulation cursor-pointer';
-  const controlBtnBase =
-    'flex-1 py-3 text-sm font-bold bg-slate-800 hover:bg-slate-700 border border-slate-700/80 rounded-2xl transition-all active:scale-[0.96] disabled:opacity-30 disabled:cursor-not-allowed select-none touch-manipulation cursor-pointer';
-
   // Handle bowler selection from dropdown
   const handleBowlerChange = (bowlerName: string) => {
     onStateChange({
@@ -105,126 +100,143 @@ export default function ScoringControls({
   };
 
   return (
-    <div className="w-full space-y-4">
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
       {/* 1. Read-only Warning banner */}
       {readOnly && !state.isMatchComplete && (
-        <div className="text-center py-3 px-4 bg-amber-950/20 border border-amber-800/40 rounded-2xl">
-          <p className="text-amber-400 text-xs font-bold">👁 Read-Only Spectator Mode</p>
-          <p className="text-slate-400 text-[10px] mt-0.5">
+        <div className="readonly-banner">
+          <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--orange)' }}>
+            Read-Only Spectator Mode
+          </p>
+          <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
             You are viewing a live feed. Only the active editor can record runs.
           </p>
         </div>
       )}
 
-      {/* 2. Bowler Switcher & Scorer options (Editor only) */}
+      {/* 2. Bowler Selector — horizontal pill scroll */}
       {!disabled && (
-        <div className="bg-slate-900 border border-slate-800/60 rounded-2xl p-3 flex items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-1.5 text-slate-400 font-bold uppercase tracking-wider">
-            <span>👤 Bowler:</span>
-          </div>
-          <select
-            value={state.currentBowlerName}
-            onChange={(e) => handleBowlerChange(e.target.value)}
-            className="flex-1 bg-slate-950 border border-slate-800/80 rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:ring-1 focus:ring-amber-500"
-          >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <span className="label-caps" style={{ paddingLeft: '4px' }}>Bowler</span>
+          <div className="bowler-scroll">
             {bowlersList.map((bowler, idx) => (
-              <option key={idx} value={bowler.name}>
-                {bowler.name} ({formatOvers(bowler.balls)} Ov)
-              </option>
+              <button
+                key={idx}
+                className={`bowler-pill${state.currentBowlerName === bowler.name ? ' active' : ''}`}
+                onClick={() => handleBowlerChange(bowler.name)}
+              >
+                {bowler.name} {formatOvers(bowler.balls)}
+              </button>
             ))}
-          </select>
+          </div>
         </div>
       )}
 
-      {/* 3. Scoring Circle Buttons Panel (Editor only) */}
+      {/* 3. Scoring Circle Buttons — 4-column grid */}
       {!state.isMatchComplete && !readOnly && !isEnteringWicket && !isEnteringRetire && (
-        <div className="bg-slate-950/30 border border-slate-900 rounded-3xl p-5 space-y-5">
-          {/* Row 1: Dot, 1, 2, 3 (Dark Grey) */}
-          <div className="flex justify-between items-center px-2">
+        <div>
+          <div className="scoring-grid">
+            {/* Row 1: DOT, 1, 2, 3 */}
             <button
+              className="score-btn runs"
               disabled={disabled}
               onClick={() => onStateChange(addDot(state))}
-              className={`${circleBtnBase} bg-slate-800 hover:bg-slate-700 border border-slate-700/60 text-slate-200`}
               title="Dot ball"
             >
-              <span>·</span>
-              <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">dot</span>
+              ·
             </button>
-
             {[1, 2, 3].map((run) => (
               <button
                 key={run}
+                className="score-btn runs"
                 disabled={disabled}
                 onClick={() => onStateChange(addRuns(state, run))}
-                className={`${circleBtnBase} bg-slate-800 hover:bg-slate-700 border border-slate-700/60 text-slate-200`}
               >
                 {run}
               </button>
             ))}
-          </div>
 
-          {/* Row 2: 4, 6 (Green), WD, NB (Gold) */}
-          <div className="flex justify-between items-center px-2">
-            {[4, 6].map((boundary) => (
-              <button
-                key={boundary}
-                disabled={disabled}
-                onClick={() => onStateChange(addRuns(state, boundary))}
-                className={`${circleBtnBase} bg-emerald-600 hover:bg-emerald-500 border border-emerald-500/60 text-white`}
-              >
-                <span>{boundary}</span>
-                <span className="text-[7px] font-bold opacity-80 uppercase tracking-widest mt-0.5">
-                  {boundary === 4 ? 'four' : 'six'}
-                </span>
-              </button>
-            ))}
-
+            {/* Row 2: 4, 6, WD, NB */}
             <button
+              className="score-btn boundary"
+              disabled={disabled}
+              onClick={() => onStateChange(addRuns(state, 4))}
+            >
+              4
+            </button>
+            <button
+              className="score-btn boundary"
+              disabled={disabled}
+              onClick={() => onStateChange(addRuns(state, 6))}
+            >
+              6
+            </button>
+            <button
+              className="score-btn extras"
               disabled={disabled}
               onClick={() => onStateChange(addWide(state, 0))}
-              className={`${circleBtnBase} bg-amber-500 hover:bg-amber-400 border border-amber-400/60 text-black`}
             >
-              <span>WD</span>
-              <span className="text-[7px] font-bold opacity-85 uppercase tracking-widest mt-0.5">wide</span>
+              WD
             </button>
-
             <button
+              className="score-btn extras"
               disabled={disabled}
               onClick={() => onStateChange(addNoBall(state, 0))}
-              className={`${circleBtnBase} bg-amber-500 hover:bg-amber-400 border border-amber-400/60 text-black`}
             >
-              <span>NB</span>
-              <span className="text-[7px] font-bold opacity-85 uppercase tracking-widest mt-0.5">no ball</span>
+              NB
+            </button>
+
+            {/* Row 3: WKT, BYE, LB, UNDO */}
+            <button
+              className="score-btn wicket"
+              disabled={disabled}
+              onClick={triggerWicketForm}
+            >
+              WKT
+            </button>
+            <button
+              className="score-btn byes"
+              disabled={disabled}
+              onClick={() => onStateChange(addBye(state, 1))}
+            >
+              BYE
+            </button>
+            <button
+              className="score-btn byes"
+              disabled={disabled}
+              onClick={() => onStateChange(addLegBye(state, 1))}
+            >
+              LB
+            </button>
+            <button
+              className="score-btn undo"
+              disabled={state.deliveries.length === 0 || isEnteringWicket || isEnteringRetire}
+              onClick={() => onStateChange(undoLastDelivery(state))}
+            >
+              ↩ Undo
             </button>
           </div>
 
-          {/* Row 3: WKT (Red), Bye, Leg Bye (Gold) */}
-          <div className="flex justify-start gap-6 items-center px-2">
+          {/* Swap Strike + Retire — text buttons below grid */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '24px',
+            padding: '8px 0 0',
+          }}>
             <button
-              disabled={disabled}
-              onClick={triggerWicketForm}
-              className={`${circleBtnBase} bg-red-600 hover:bg-red-500 border border-red-500/60 text-white shadow-red-900/20`}
+              className="btn-text"
+              disabled={isEnteringWicket || isEnteringRetire}
+              onClick={() => onStateChange(swapStrike(state))}
             >
-              <span>WKT</span>
-              <span className="text-[7px] font-bold opacity-90 uppercase tracking-widest mt-0.5">out</span>
+              Swap Strike
             </button>
-
             <button
-              disabled={disabled}
-              onClick={() => onStateChange(addBye(state, 1))}
-              className={`${circleBtnBase} bg-yellow-600 hover:bg-yellow-500 border border-yellow-500/50 text-white`}
+              className="btn-text destructive"
+              disabled={isEnteringWicket || isEnteringRetire}
+              onClick={triggerRetireForm}
             >
-              <span>B</span>
-              <span className="text-[7px] font-bold opacity-80 uppercase tracking-widest mt-0.5">bye</span>
-            </button>
-
-            <button
-              disabled={disabled}
-              onClick={() => onStateChange(addLegBye(state, 1))}
-              className={`${circleBtnBase} bg-yellow-600 hover:bg-yellow-500 border border-yellow-500/50 text-white`}
-            >
-              <span>LB</span>
-              <span className="text-[7px] font-bold opacity-80 uppercase tracking-widest mt-0.5">lbye</span>
+              Retire
             </button>
           </div>
         </div>
@@ -232,25 +244,32 @@ export default function ScoringControls({
 
       {/* 4. Dynamic Wicket Recording Form */}
       {isEnteringWicket && (
-        <div className="bg-slate-900 border border-red-900/30 rounded-3xl p-5 space-y-4 animate-[slide-down_0.2s_ease-out]">
-          <div className="flex justify-between items-center">
-            <h3 className="text-sm font-black text-red-400 flex items-center gap-1.5 uppercase tracking-wider">
-              🔴 Record Wicket
+        <div style={{
+          background: 'var(--surface)',
+          borderRadius: 'var(--radius-card)',
+          padding: '24px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{
+              fontSize: '15px',
+              fontWeight: 700,
+              color: 'var(--destructive)',
+              letterSpacing: '0.02em',
+            }}>
+              Record Wicket
             </h3>
-            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-              Match ID: {state.totalOvers}O
-            </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 text-xs">
-            <div>
-              <label className="block text-slate-400 font-bold mb-1 uppercase tracking-wider text-[10px]">
-                Dismissal
-              </label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label className="label-caps">Dismissal</label>
               <select
+                className="input-field"
                 value={wicketType}
                 onChange={(e) => setWicketType(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold"
               >
                 {['Bowled', 'Caught', 'LBW', 'Stumped', 'Run Out', 'Retired', 'Hit Wicket'].map((type) => (
                   <option key={type} value={type}>
@@ -260,14 +279,12 @@ export default function ScoringControls({
               </select>
             </div>
 
-            <div>
-              <label className="block text-slate-400 font-bold mb-1 uppercase tracking-wider text-[10px]">
-                Who is Out?
-              </label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label className="label-caps">Who is Out?</label>
               <select
+                className="input-field"
                 value={dismissedBatter}
                 onChange={(e) => setDismissedBatter(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold"
               >
                 <option value={state.strikerName}>{state.strikerName} (Striker)</option>
                 <option value={state.nonStrikerName}>{state.nonStrikerName} (Non-Striker)</option>
@@ -275,15 +292,13 @@ export default function ScoringControls({
             </div>
           </div>
 
-          <div>
-            <label className="block text-slate-400 font-bold mb-1 uppercase tracking-wider text-[10px]">
-              Next Batter
-            </label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label className="label-caps">Next Batter</label>
             {nextBatters.length > 0 ? (
               <select
+                className="input-field"
                 value={nextBatterName}
                 onChange={(e) => setNextBatterName(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold"
               >
                 {nextBatters.map((b, idx) => (
                   <option key={idx} value={b.name}>
@@ -292,20 +307,23 @@ export default function ScoringControls({
                 ))}
               </select>
             ) : (
-              <p className="text-slate-500 text-xs italic pl-1">All out (No batters remaining)</p>
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                All out (No batters remaining)
+              </p>
             )}
           </div>
 
-          <div className="flex gap-3">
+          <div style={{ display: 'flex', gap: '8px', paddingTop: '8px' }}>
             <button
+              className="btn-primary destructive"
               onClick={handleSubmitWicket}
-              className="flex-1 py-3 text-sm font-bold bg-red-600 hover:bg-red-500 text-white rounded-2xl transition-all cursor-pointer"
             >
-              Confirm Wicket 🔴
+              Confirm Wicket
             </button>
             <button
+              className="btn-text"
               onClick={() => setIsEnteringWicket(false)}
-              className="px-6 py-3 text-sm font-bold bg-slate-850 hover:bg-slate-800 text-slate-400 rounded-2xl transition-all cursor-pointer"
+              style={{ flexShrink: 0 }}
             >
               Cancel
             </button>
@@ -315,37 +333,43 @@ export default function ScoringControls({
 
       {/* 5. Dynamic Retire Batter Form */}
       {isEnteringRetire && (
-        <div className="bg-slate-900 border border-amber-900/30 rounded-3xl p-5 space-y-4 animate-[slide-down_0.2s_ease-out]">
-          <div>
-            <h3 className="text-sm font-black text-amber-400 flex items-center gap-1.5 uppercase tracking-wider">
-              🛡 Retire Batter
-            </h3>
-          </div>
+        <div style={{
+          background: 'var(--surface)',
+          borderRadius: 'var(--radius-card)',
+          padding: '24px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+        }}>
+          <h3 style={{
+            fontSize: '15px',
+            fontWeight: 700,
+            color: 'var(--text)',
+            letterSpacing: '0.02em',
+          }}>
+            Retire Batter
+          </h3>
 
-          <div className="grid grid-cols-2 gap-3 text-xs">
-            <div>
-              <label className="block text-slate-400 font-bold mb-1 uppercase tracking-wider text-[10px]">
-                Retire Target
-              </label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label className="label-caps">Retire Target</label>
               <select
+                className="input-field"
                 value={retireTarget}
                 onChange={(e) => setRetireTarget(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold"
               >
                 <option value={state.strikerName}>{state.strikerName} (Striker)</option>
                 <option value={state.nonStrikerName}>{state.nonStrikerName} (Non-Striker)</option>
               </select>
             </div>
 
-            <div>
-              <label className="block text-slate-400 font-bold mb-1 uppercase tracking-wider text-[10px]">
-                Next Batter
-              </label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label className="label-caps">Next Batter</label>
               {nextBatters.length > 0 ? (
                 <select
+                  className="input-field"
                   value={nextBatterName}
                   onChange={(e) => setNextBatterName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold"
                 >
                   {nextBatters.map((b, idx) => (
                     <option key={idx} value={b.name}>
@@ -354,21 +378,24 @@ export default function ScoringControls({
                   ))}
                 </select>
               ) : (
-                <p className="text-slate-500 text-xs italic pl-1">No batters remaining</p>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                  No batters remaining
+                </p>
               )}
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div style={{ display: 'flex', gap: '8px', paddingTop: '8px' }}>
             <button
+              className="btn-primary"
               onClick={handleSubmitRetire}
-              className="flex-1 py-3 text-sm font-bold bg-amber-500 hover:bg-amber-400 text-black rounded-2xl transition-all cursor-pointer"
             >
-              Confirm Retirement 🛡
+              Confirm Retire
             </button>
             <button
+              className="btn-text"
               onClick={() => setIsEnteringRetire(false)}
-              className="px-6 py-3 text-sm font-bold bg-slate-850 hover:bg-slate-800 text-slate-400 rounded-2xl transition-all cursor-pointer"
+              style={{ flexShrink: 0 }}
             >
               Cancel
             </button>
@@ -376,38 +403,10 @@ export default function ScoringControls({
         </div>
       )}
 
-      {/* 6. Scoring Action Buttons (Undo, Swap Strike, Retire) - Editor only */}
-      {!readOnly && (
-        <div className="flex justify-between gap-3 pt-2">
-          <button
-            onClick={() => onStateChange(undoLastDelivery(state))}
-            disabled={state.deliveries.length === 0 || isEnteringWicket || isEnteringRetire}
-            className={`${controlBtnBase} text-amber-400`}
-          >
-            ↩ Undo
-          </button>
-          
-          <button
-            onClick={() => onStateChange(swapStrike(state))}
-            disabled={isEnteringWicket || isEnteringRetire}
-            className={`${controlBtnBase} text-indigo-400`}
-          >
-            🔄 Swap Strike
-          </button>
-          
-          <button
-            onClick={triggerRetireForm}
-            disabled={isEnteringWicket || isEnteringRetire}
-            className={`${controlBtnBase} text-red-400`}
-          >
-            🛡 Retire
-          </button>
-        </div>
-      )}
-
-      {/* 7. End Innings Button Banner (First Innings Editor Only) */}
+      {/* 6. End Innings Button */}
       {showEndInnings && (
         <button
+          className="btn-primary green"
           onClick={() => {
             if (
               window.confirm(
@@ -418,10 +417,15 @@ export default function ScoringControls({
               onStateChange(endInnings(state));
             }
           }}
-          className="w-full py-4 text-sm font-black bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white border border-cyan-500 shadow-lg shadow-cyan-900/30 rounded-2xl transition-all active:scale-[0.98] select-none touch-manipulation cursor-pointer"
         >
-          🔄 End Innings & Swaps Ends
-          <span className="block text-[9px] font-semibold opacity-75 mt-0.5 uppercase tracking-widest">
+          <span>End Innings</span>
+          <span style={{
+            display: 'block',
+            fontSize: '11px',
+            fontWeight: 500,
+            color: 'var(--text-secondary)',
+            marginTop: '4px',
+          }}>
             Switch to {state.teamBowling} batting next
           </span>
         </button>

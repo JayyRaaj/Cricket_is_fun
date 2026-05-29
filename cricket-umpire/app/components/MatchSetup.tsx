@@ -128,133 +128,232 @@ export default function MatchSetup({ onStart }: MatchSetupProps) {
     });
   };
 
-  const inputClasses =
-    'w-full px-4 py-3.5 text-base bg-slate-850 border border-slate-700/60 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all';
-  const labelClasses =
-    'block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5';
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4 relative">
-      {/* Floating Theme Toggle in top-right */}
-      <div className="absolute top-4 right-4 z-50">
-        <button
-          onClick={toggleTheme}
-          className="px-3.5 py-2 bg-slate-900 border border-slate-800 rounded-2xl text-amber-400 font-black shadow-lg transition-all active:scale-95 cursor-pointer text-sm"
-          title={`Switch to ${
-            theme === 'dark' ? 'Light' : theme === 'light' ? 'Sunlight' : 'Dark'
-          } Mode`}
-        >
-          {theme === 'dark' ? '🌙' : theme === 'light' ? '☀️' : '🕶️'}
-        </button>
-      </div>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'var(--bg)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px',
+        position: 'relative',
+      }}
+    >
+      {/* Theme Toggle — top right */}
+      <button
+        className="nav-btn"
+        onClick={toggleTheme}
+        title={`Switch to ${
+          theme === 'dark' ? 'Light' : theme === 'light' ? 'Sunlight' : 'Dark'
+        } Mode`}
+        style={{ position: 'absolute', top: 16, right: 16 }}
+      >
+        {theme === 'dark' ? '🌙' : theme === 'light' ? '☀️' : '☀️'}
+      </button>
 
-      <div className="w-full max-w-md space-y-6 py-6">
+      <div
+        style={{
+          width: '100%',
+          maxWidth: 400,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 24,
+        }}
+      >
         {/* Header */}
-        <div className="text-center mb-4">
-          <div className="text-5xl mb-2 animate-bounce">🏏</div>
-          <h1 className="text-3xl font-black text-white tracking-tight bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
+        <div style={{ textAlign: 'center' }}>
+          <h1
+            style={{
+              fontSize: 28,
+              fontWeight: 700,
+              color: 'var(--text)',
+              letterSpacing: '-0.5px',
+              lineHeight: 1.2,
+            }}
+          >
             Cricket Umpire
           </h1>
-          <p className="text-slate-400 mt-1 text-sm font-medium">Professional Match Scoring</p>
+          <p
+            style={{
+              fontSize: 15,
+              color: 'var(--text-secondary)',
+              marginTop: 4,
+            }}
+          >
+            Match Setup
+          </p>
         </div>
 
-        {/* Main Card */}
-        <div className="space-y-5 bg-slate-900/90 border border-slate-800/80 backdrop-blur-xl rounded-3xl p-6 shadow-2xl shadow-black/80">
+        {/* Form */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {/* Batting Team */}
           <div>
-            <label className={labelClasses}>Batting Team</label>
+            <label className="label-caps" style={{ display: 'block', marginBottom: 6 }}>
+              Batting Team
+            </label>
             <input
+              className="input-field"
               type="text"
               value={teamBatting}
               onChange={(e) => setTeamBatting(e.target.value)}
               placeholder="Team A"
-              className={inputClasses}
             />
           </div>
 
+          {/* Bowling Team */}
           <div>
-            <label className={labelClasses}>Bowling Team</label>
+            <label className="label-caps" style={{ display: 'block', marginBottom: 6 }}>
+              Bowling Team
+            </label>
             <input
+              className="input-field"
               type="text"
               value={teamBowling}
               onChange={(e) => setTeamBowling(e.target.value)}
               placeholder="Team B"
-              className={inputClasses}
             />
           </div>
 
+          {/* Overs Selector */}
           <div>
-            <label className={labelClasses}>Total Overs</label>
-            <div className="grid grid-cols-4 gap-2">
+            <label className="label-caps" style={{ display: 'block', marginBottom: 6 }}>
+              Total Overs
+            </label>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: 8,
+              }}
+            >
               {[5, 10, 20, 50].map((ov) => (
                 <button
                   key={ov}
                   onClick={() => setTotalOvers(ov)}
-                  className={`py-3 text-sm font-black rounded-xl transition-all duration-150 active:scale-95 ${
-                    totalOvers === ov
-                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-black shadow-lg shadow-amber-500/25'
-                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700/80 border border-slate-700/50'
-                  }`}
+                  style={{
+                    height: 44,
+                    borderRadius: 'var(--radius-button)',
+                    fontSize: 15,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    border:
+                      totalOvers === ov
+                        ? 'none'
+                        : '1px solid color-mix(in srgb, var(--text-secondary) 25%, transparent)',
+                    background:
+                      totalOvers === ov ? 'var(--accent)' : 'var(--surface)',
+                    color: totalOvers === ov ? '#FFFFFF' : 'var(--text)',
+                    transition: 'all 0.15s ease',
+                    WebkitTapHighlightColor: 'transparent',
+                    touchAction: 'manipulation',
+                  }}
                 >
                   {ov}
                 </button>
               ))}
             </div>
             <input
+              className="input-field"
               type="number"
               value={totalOvers}
-              onChange={(e) => setTotalOvers(Math.max(1, parseInt(e.target.value) || 1))}
+              onChange={(e) =>
+                setTotalOvers(Math.max(1, parseInt(e.target.value) || 1))
+              }
               min={1}
               max={100}
-              className={`${inputClasses} mt-2.5 text-center font-bold`}
+              style={{ marginTop: 10, textAlign: 'center', fontWeight: 600 }}
             />
           </div>
 
-          {/* Collapsible Player Config Accordion */}
-          <div className="border-t border-slate-800/80 pt-4">
+          {/* Player Setup Accordion */}
+          <div
+            style={{
+              borderTop: '0.5px solid color-mix(in srgb, var(--text-secondary) 20%, transparent)',
+              paddingTop: 16,
+            }}
+          >
             <button
               onClick={() => setShowPlayerSetup(!showPlayerSetup)}
-              className="w-full flex items-center justify-between py-2 text-xs font-bold text-slate-400 hover:text-white transition-colors"
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 0',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+                touchAction: 'manipulation',
+              }}
             >
-              <span>⚙ {showPlayerSetup ? 'HIDE' : 'SETUP'} PLAYER NAMES (OPTIONAL)</span>
-              <span>{showPlayerSetup ? '▲' : '▼'}</span>
+              <span className="label-caps">Player Names (Optional)</span>
+              <span
+                style={{
+                  fontSize: 13,
+                  color: 'var(--text-secondary)',
+                  transition: 'transform 0.2s ease',
+                  transform: showPlayerSetup ? 'rotate(180deg)' : 'rotate(0deg)',
+                  display: 'inline-block',
+                }}
+              >
+                ▼
+              </span>
             </button>
 
             {showPlayerSetup && (
-              <div className="space-y-4 pt-3 animate-[slide-down_0.2s_ease-out]">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 12 }}>
                 <div>
-                  <label className={labelClasses}>{teamBatting} Players (11 names, comma or line separated)</label>
+                  <label className="label-caps" style={{ display: 'block', marginBottom: 6 }}>
+                    {teamBatting} Players (11 names, comma or line separated)
+                  </label>
                   <textarea
+                    className="input-field"
                     rows={4}
                     value={teamAPlayersInput}
                     onChange={(e) => setTeamAPlayersInput(e.target.value)}
                     placeholder="E.g. Sachin, Virat, Rohit, Dhoni..."
-                    className={`${inputClasses} font-mono text-sm leading-relaxed resize-none`}
+                    style={{ fontFamily: 'monospace', fontSize: 14, lineHeight: 1.6, resize: 'none' }}
                   />
                 </div>
 
                 <div>
-                  <label className={labelClasses}>{teamBowling} Players (11 names, comma or line separated)</label>
+                  <label className="label-caps" style={{ display: 'block', marginBottom: 6 }}>
+                    {teamBowling} Players (11 names, comma or line separated)
+                  </label>
                   <textarea
+                    className="input-field"
                     rows={4}
                     value={teamBPlayersInput}
                     onChange={(e) => setTeamBPlayersInput(e.target.value)}
                     placeholder="E.g. Warne, McGrath, Ponting, Gilchrist..."
-                    className={`${inputClasses} font-mono text-sm leading-relaxed resize-none`}
+                    style={{ fontFamily: 'monospace', fontSize: 14, lineHeight: 1.6, resize: 'none' }}
                   />
                 </div>
               </div>
             )}
           </div>
 
+          {/* Start Match Button */}
           <button
+            className="btn-primary"
             onClick={handleStart}
-            className="w-full py-4 text-xl font-black bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-black rounded-2xl transition-all duration-150 active:scale-[0.98] shadow-xl shadow-amber-500/20 mt-4 select-none touch-manipulation cursor-pointer"
+            style={{ marginTop: 8 }}
           >
-            Start Match 🏏
+            Start Match
           </button>
         </div>
 
-        <p className="text-center text-xs text-slate-500 font-medium">
+        {/* Footer */}
+        <p
+          style={{
+            textAlign: 'center',
+            fontSize: 11,
+            color: 'var(--text-secondary)',
+            opacity: 0.4,
+          }}
+        >
           Powered by Google DeepMind Antigravity
         </p>
       </div>

@@ -8,14 +8,14 @@ interface DeliveryLogProps {
 }
 
 function getDeliveryColor(delivery: Delivery): string {
-  if (delivery.isWicket) return 'bg-red-600 text-white ring-2 ring-red-400';
-  if (delivery.isWide) return 'bg-yellow-500/90 text-black';
-  if (delivery.isNoBall) return 'bg-orange-500 text-black';
-  if (delivery.isBye || delivery.isLegBye) return 'bg-purple-600 text-white';
-  if (delivery.runs === 4) return 'bg-sky-500 text-white';
-  if (delivery.runs === 6) return 'bg-emerald-500 text-white ring-2 ring-emerald-300';
-  if (delivery.isDot) return 'bg-slate-600 text-slate-300';
-  return 'bg-slate-500 text-white';
+  if (delivery.isWicket) return 'delivery-chip wicket';
+  if (delivery.isWide) return 'delivery-chip wide';
+  if (delivery.isNoBall) return 'delivery-chip noball';
+  if (delivery.isBye || delivery.isLegBye) return 'delivery-chip bye';
+  if (delivery.runs === 4) return 'delivery-chip four';
+  if (delivery.runs === 6) return 'delivery-chip six';
+  if (delivery.isDot) return 'delivery-chip dot';
+  return 'delivery-chip runs';
 }
 
 function groupDeliveriesByOver(deliveries: Delivery[]): Map<number, Delivery[]> {
@@ -31,12 +31,26 @@ function groupDeliveriesByOver(deliveries: Delivery[]): Map<number, Delivery[]> 
 export default function DeliveryLog({ deliveries, totalOvers }: DeliveryLogProps) {
   if (deliveries.length === 0) {
     return (
-      <div className="w-full rounded-2xl bg-slate-900/80 border border-slate-700/50 p-5">
-        <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-3">
+      <div
+        style={{
+          background: 'var(--surface)',
+          borderRadius: 'var(--radius-card)',
+          padding: 16,
+        }}
+      >
+        <h3 className="label-caps" style={{ marginBottom: 8 }}>
           Delivery Log
         </h3>
-        <p className="text-slate-600 text-center py-6 text-base">
-          No deliveries yet. Start scoring!
+        <p
+          style={{
+            color: 'var(--text-secondary)',
+            textAlign: 'center',
+            padding: '24px 0',
+            fontSize: 15,
+            margin: 0,
+          }}
+        >
+          No deliveries yet
         </p>
       </div>
     );
@@ -46,29 +60,75 @@ export default function DeliveryLog({ deliveries, totalOvers }: DeliveryLogProps
   const overEntries = Array.from(grouped.entries()).reverse(); // most recent first
 
   return (
-    <div className="w-full rounded-2xl bg-slate-900/80 border border-slate-700/50 p-5">
-      <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-4">
-        Delivery Log
+    <div
+      style={{
+        background: 'var(--surface)',
+        borderRadius: 'var(--radius-card)',
+        padding: 16,
+      }}
+    >
+      <h3 className="label-caps" style={{ marginBottom: 16 }}>
+        This Over
       </h3>
-      <div className="space-y-3 max-h-60 overflow-y-auto scrollbar-thin">
+      <div
+        style={{
+          maxHeight: 200,
+          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+        }}
+      >
         {overEntries.map(([overNum, overs]) => {
           const overRuns = overs.reduce((sum, d) => sum + d.totalRuns, 0);
           return (
-            <div key={overNum} className="flex items-center gap-3">
-              <span className="text-xs font-bold text-slate-500 w-12 shrink-0 tabular-nums">
+            <div
+              key={overNum}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 13,
+                  color: 'var(--text-secondary)',
+                  width: 40,
+                  flexShrink: 0,
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
                 Ov {overNum + 1}
               </span>
-              <div className="flex flex-wrap gap-1.5 flex-1">
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 6,
+                  flex: 1,
+                }}
+              >
                 {overs.map((d, i) => (
                   <span
                     key={`${overNum}-${i}`}
-                    className={`inline-flex items-center justify-center min-w-[2.5rem] h-10 rounded-lg text-sm font-bold px-1.5 transition-all ${getDeliveryColor(d)}`}
+                    className={getDeliveryColor(d)}
                   >
                     {d.label}
                   </span>
                 ))}
               </div>
-              <span className="text-xs font-semibold text-slate-400 tabular-nums w-8 text-right">
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: 'var(--text-secondary)',
+                  fontVariantNumeric: 'tabular-nums',
+                  width: 32,
+                  textAlign: 'right' as const,
+                  flexShrink: 0,
+                }}
+              >
                 {overRuns}r
               </span>
             </div>

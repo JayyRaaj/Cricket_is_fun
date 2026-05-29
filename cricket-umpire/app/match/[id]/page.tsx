@@ -374,13 +374,31 @@ export default function MatchPage() {
     }
   }, [id]);
 
+  // ========================================
+  // RENDER
+  // ========================================
+
   // Loading state
   if (!isHydrated) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-5xl mb-4 animate-bounce">🏏</div>
-          <p className="text-slate-500 text-lg">Connecting to match server...</p>
+      <div style={{
+        minHeight: '100vh',
+        background: 'var(--bg)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            fontSize: 48,
+            marginBottom: 16,
+            animation: 'pulse-score 1.5s ease-in-out infinite',
+          }}>🏏</div>
+          <p style={{
+            fontSize: 17,
+            fontWeight: 500,
+            color: 'var(--text-secondary)',
+          }}>Connecting...</p>
         </div>
       </div>
     );
@@ -389,100 +407,118 @@ export default function MatchPage() {
   // Error state (e.g. 404 match not found)
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
-        <div className="text-center bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-sm w-full">
-          <div className="text-5xl mb-4">📭</div>
-          <h2 className="text-xl font-bold text-white mb-2">Match Unreachable</h2>
-          <p className="text-slate-400 text-sm mb-6">{error}</p>
+      <div style={{
+        minHeight: '100vh',
+        background: 'var(--bg)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 24,
+      }}>
+        <div style={{
+          textAlign: 'center',
+          background: 'var(--surface)',
+          borderRadius: 'var(--radius-card)',
+          padding: 32,
+          maxWidth: 360,
+          width: '100%',
+        }}>
+          <h2 style={{
+            fontSize: 20,
+            fontWeight: 700,
+            color: 'var(--text)',
+            marginBottom: 8,
+          }}>Match Not Found</h2>
+          <p style={{
+            fontSize: 15,
+            color: 'var(--text-secondary)',
+            marginBottom: 24,
+          }}>{error}</p>
           <a
             href="/"
-            className="block w-full py-3.5 text-center text-sm font-bold bg-amber-500 hover:bg-amber-400 text-black rounded-2xl transition-colors"
+            className="btn-primary"
+            style={{
+              display: 'block',
+              textDecoration: 'none',
+              textAlign: 'center',
+            }}
           >
-            Create New Match
+            New Match
           </a>
         </div>
       </div>
     );
   }
 
+  // Truncated match name for nav bar
+  const matchName = state.teamBatting && state.teamBowling
+    ? `${state.teamBatting} v ${state.teamBowling}`
+    : 'Match';
+
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex flex-col">
-      {/* Header bar */}
-      <header className="sticky top-0 z-50 bg-slate-950/95 backdrop-blur-md border-b border-slate-800/50 px-4 py-2.5 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-xl">🏏</span>
-          <h1 className="text-base font-bold text-white tracking-tight">
-            Cricket Umpire
-          </h1>
-          {/* Editor/Viewer status badge */}
-          {isEditor ? (
-            <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-900/60 text-emerald-400 px-1.5 py-0.5 rounded-md border border-emerald-800/40">
-              Editor
-            </span>
-          ) : (
-            <span className="text-[9px] font-bold uppercase tracking-wider bg-amber-900/60 text-amber-400 px-1.5 py-0.5 rounded-md border border-amber-800/40">
-              Viewer
-            </span>
-          )}
+    <main style={{
+      minHeight: '100vh',
+      background: 'var(--bg)',
+      display: 'flex',
+      flexDirection: 'column',
+      transition: 'background-color 0.2s ease',
+    }}>
+      {/* ===== Navigation Bar (44px iOS-style) ===== */}
+      <nav className="nav-bar">
+        <div className="nav-left">
+          <a href="/" style={{
+            color: 'var(--accent)',
+            fontSize: 20,
+            textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            minWidth: 44,
+            minHeight: 44,
+            justifyContent: 'center',
+          }}>‹</a>
+          <span className="nav-title" style={{
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            maxWidth: 180,
+          }}>{matchName}</span>
+          <span
+            className={`status-dot ${isEditor ? 'editor' : 'viewer'}`}
+            title={isEditor ? 'Editor' : 'Viewer'}
+          />
         </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-[10px] text-slate-600 font-mono uppercase tracking-wider hidden sm:inline">
-            {state.currentInnings === 1 ? '1st' : '2nd'}
-          </span>
-          <span className="text-xs text-slate-500 font-mono">
-            vs {state.teamBowling}
-          </span>
-
-          {/* Scorecard Button */}
+        <div className="nav-right">
           <button
+            className="nav-btn"
             onClick={() => setShowScorecard(true)}
-            className="px-2.5 py-1.5 text-xs font-semibold bg-slate-850 hover:bg-slate-800 text-sky-400 rounded-lg border border-slate-700 transition-colors active:scale-95 touch-manipulation cursor-pointer"
-            title="Open Scorecard"
+            title="Scorecard"
           >
-            📊
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M3 9h18"/>
+              <path d="M9 3v18"/>
+            </svg>
           </button>
-
-          {/* Theme Toggle Button */}
           <button
+            className="nav-btn"
             onClick={toggleTheme}
-            className="px-2.5 py-1.5 text-xs font-semibold bg-slate-850 hover:bg-slate-800 text-amber-400 rounded-lg border border-slate-700 transition-colors active:scale-95 touch-manipulation cursor-pointer"
-            title={`Switch to ${
-              theme === 'dark' ? 'Light' : theme === 'light' ? 'Sunlight' : 'Dark'
-            } Mode`}
+            title={`${theme === 'dark' ? 'Light' : theme === 'light' ? 'Sunlight' : 'Dark'} mode`}
+            style={{ fontSize: 20 }}
           >
-            {theme === 'dark' ? '🌙' : theme === 'light' ? '☀️' : '🕶️'}
+            {theme === 'dark' ? '🌙' : theme === 'light' ? '☀️' : '☀️'}
           </button>
-
-          {/* Share (read-only spectator link) */}
-          <button
-            onClick={handleShare}
-            className="px-2.5 py-1.5 text-xs font-semibold bg-slate-850 hover:bg-slate-800 text-amber-400 rounded-lg border border-slate-700 transition-colors active:scale-95 touch-manipulation cursor-pointer"
-            title="Copy spectator link"
-          >
-            📋
-          </button>
-
-          {/* Hand Off scoring authority (editor only) */}
-          {isEditor && (
-            <button
-              onClick={() => setShowHandOff(true)}
-              className="px-2.5 py-1.5 text-xs font-semibold bg-indigo-900/80 hover:bg-indigo-850 text-indigo-200 rounded-lg border border-indigo-700/60 transition-colors active:scale-95 touch-manipulation cursor-pointer"
-              title="Hand off scoring to another umpire"
-            >
-              📲
-            </button>
-          )}
         </div>
-      </header>
+      </nav>
 
-      {/* Share toast notification */}
+      {/* ===== Share toast ===== */}
       {shareToast && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[100] bg-emerald-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-xl animate-[fade-in_0.2s_ease-out]">
-          ✓ Spectator link copied!
+        <div className="toast">
+          Link copied
         </div>
       )}
 
-      {/* Hand-Off Modal */}
+      {/* ===== Hand-Off Modal ===== */}
       {showHandOff && (
         <HandOffModal
           matchId={id}
@@ -492,7 +528,7 @@ export default function MatchPage() {
         />
       )}
 
-      {/* Scorecard Modal */}
+      {/* ===== Scorecard Modal ===== */}
       {showScorecard && (
         <ScorecardModal
           state={state}
@@ -500,111 +536,188 @@ export default function MatchPage() {
         />
       )}
 
-      {/* Dynamic WebRTC Handoff Receiver Invitation Banner */}
+      {/* ===== WebRTC Handoff Receiver Banner ===== */}
       {incomingOffer && !isEditor && !isAcceptingHandoff && (
-        <div className="w-full bg-indigo-950 border-b border-indigo-800 px-4 py-3 text-center flex flex-col sm:flex-row items-center justify-center gap-3 animate-[slide-down_0.2s_ease-out] relative z-40">
-          <span className="text-xs text-indigo-200 font-bold uppercase tracking-wider">
-            📥 Incoming Handoff Request! Accept scoring authority for this match?
-          </span>
-          <div className="flex gap-2">
+        <div style={{
+          padding: '12px 16px',
+          background: 'color-mix(in srgb, var(--accent) 10%, var(--bg))',
+          borderBottom: '1px solid color-mix(in srgb, var(--accent) 20%, transparent)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 16,
+          flexWrap: 'wrap',
+          animation: 'fade-in 0.2s ease',
+        }}>
+          <span style={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: 'var(--text)',
+          }}>Incoming hand-off request</span>
+          <div style={{ display: 'flex', gap: 8 }}>
             <button
               onClick={() => acceptWebRTCHandoff(incomingOffer)}
-              className="px-4 py-1.5 text-xs font-black bg-emerald-500 hover:bg-emerald-400 text-black rounded-lg transition-colors cursor-pointer"
-            >
-              Accept Handoff ⚡
-            </button>
+              style={{
+                padding: '8px 16px',
+                fontSize: 13,
+                fontWeight: 700,
+                background: 'var(--green)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 'var(--radius-pill)',
+                cursor: 'pointer',
+                minHeight: 44,
+              }}
+            >Accept</button>
             <button
               onClick={() => setIncomingOffer(null)}
-              className="px-4 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-400 rounded-lg transition-colors cursor-pointer"
-            >
-              Ignore
-            </button>
+              style={{
+                padding: '8px 16px',
+                fontSize: 13,
+                fontWeight: 600,
+                background: 'var(--surface)',
+                color: 'var(--text-secondary)',
+                border: 'none',
+                borderRadius: 'var(--radius-pill)',
+                cursor: 'pointer',
+                minHeight: 44,
+              }}
+            >Ignore</button>
           </div>
         </div>
       )}
 
-      {/* Callee WebRTC Handoff Connecting Overlay */}
+      {/* ===== WebRTC Accepting Overlay ===== */}
       {isAcceptingHandoff && (
-        <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/85 backdrop-blur-md" />
-          <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl text-center space-y-4">
-            <div className="relative flex items-center justify-center w-20 h-20 mx-auto">
-              <div className="absolute w-16 h-16 bg-emerald-500/25 rounded-full animate-ping" />
-              <div className="absolute w-12 h-12 bg-emerald-500/40 rounded-full animate-pulse" />
-              <div className="text-3xl">⚡</div>
+        <div className="modal-overlay" style={{ zIndex: 250 }}>
+          <div className="modal-backdrop" />
+          <div className="modal-card" style={{ padding: 32, textAlign: 'center' }}>
+            <div style={{
+              width: 48,
+              height: 48,
+              borderRadius: '50%',
+              background: 'color-mix(in srgb, var(--green) 15%, var(--surface))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px',
+              animation: 'pulse-score 1.5s ease-in-out infinite',
+            }}>
+              <span style={{ fontSize: 24 }}>⚡</span>
             </div>
-            <h2 className="text-lg font-black text-white tracking-tight uppercase">
-              Connecting Scorer...
-            </h2>
-            <p className="text-xs text-slate-400 leading-relaxed px-4">
-              Establishing a secure peer-to-peer WebRTC DataChannel connection. Please stay on this screen...
-            </p>
+            <h2 style={{
+              fontSize: 20,
+              fontWeight: 700,
+              color: 'var(--text)',
+              marginBottom: 8,
+            }}>Connecting</h2>
+            <p style={{
+              fontSize: 13,
+              color: 'var(--text-secondary)',
+              lineHeight: 1.5,
+            }}>Establishing peer connection...</p>
           </div>
         </div>
       )}
 
-      {/* Innings Break Modal Display */}
+      {/* ===== Innings Break — Full Screen Takeover ===== */}
       {state.currentInnings === 1 && state.isInningsComplete && !state.isMatchComplete && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/85 backdrop-blur-md" />
-          <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl text-center space-y-5 animate-[scale-up_0.2s_ease-out]">
-            <div className="text-5xl">⛳</div>
-            <h2 className="text-2xl font-black text-white tracking-tight">
-              Innings Break
-            </h2>
-            <div className="bg-slate-950/50 border border-slate-850 rounded-2xl py-4 px-4">
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
-                First Innings Completed
-              </p>
-              <p className="text-3xl font-black text-white font-mono mt-1">
-                {state.totalRuns}/{state.totalWickets}
-              </p>
-              <p className="text-xs text-amber-400 mt-2 font-bold uppercase tracking-wider">
-                Target: {state.totalRuns + 1} runs
-              </p>
+        <div className="fullscreen-takeover">
+          <div style={{
+            textAlign: 'center',
+            maxWidth: 360,
+            width: '100%',
+          }}>
+            <p className="label-caps" style={{ marginBottom: 16 }}>
+              Innings Complete
+            </p>
+            <div style={{
+              fontSize: 72,
+              fontWeight: 700,
+              letterSpacing: -2,
+              color: 'var(--text)',
+              lineHeight: 1,
+              fontVariantNumeric: 'tabular-nums',
+            }}>
+              {state.totalRuns + 1}
             </div>
+            <p style={{
+              fontSize: 18,
+              fontWeight: 500,
+              color: 'var(--text-secondary)',
+              marginTop: 8,
+              marginBottom: 48,
+            }}>
+              target for {state.teamBowling}
+            </p>
             
-            {/* Start 2nd Innings button (Editor only) */}
             {isEditor ? (
               <button
+                className="btn-primary"
                 onClick={() => handleStateChange(endInnings(state))}
-                className="w-full py-4 text-base font-black bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black rounded-2xl transition-all cursor-pointer"
               >
-                Start 2nd Innings 🏏
+                Start 2nd Innings
               </button>
             ) : (
-              <p className="text-xs text-slate-500 italic">
-                Waiting for the active editor to start the 2nd innings...
-              </p>
+              <p style={{
+                fontSize: 15,
+                color: 'var(--text-secondary)',
+              }}>Waiting for scorer to start 2nd innings...</p>
             )}
           </div>
         </div>
       )}
 
-      {/* Main scoring / scoreboard content */}
-      <div className="flex-1 w-full max-w-lg mx-auto px-4 py-4 space-y-4">
+      {/* ===== Main Content ===== */}
+      <div style={{
+        flex: 1,
+        width: '100%',
+        maxWidth: 500,
+        margin: '0 auto',
+        padding: '0 16px 24px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+      }}>
         {/* Scoreboard */}
         <Scoreboard state={state} />
 
-        {/* Scoring Controls (Active scorer options) */}
+        {/* Scoring Controls */}
         <ScoringControls
           state={state}
           onStateChange={handleStateChange}
           readOnly={!isEditor}
         />
 
-        {/* Live Delivery Log */}
+        {/* Delivery Log */}
         <DeliveryLog
           deliveries={state.deliveries}
           totalOvers={state.totalOvers}
         />
 
-        {/* Footer help info */}
-        <p className="text-center text-[10px] text-slate-700 pb-4">
-          {isEditor
-            ? `You are the active editor • Match ID: ${id} • Autosyncing to server`
-            : `Read-only view • Match ID: ${id} • Autosyncing every 3s`}
-        </p>
+        {/* Action bar: Share & Hand-off (editor only) */}
+        {isEditor && !state.isMatchComplete && (
+          <div style={{
+            display: 'flex',
+            gap: 8,
+            paddingTop: 8,
+          }}>
+            <button
+              className="btn-text"
+              onClick={handleShare}
+              style={{ flex: 1, textAlign: 'center' }}
+            >
+              Share Link
+            </button>
+            <button
+              className="btn-text"
+              onClick={() => setShowHandOff(true)}
+              style={{ flex: 1, textAlign: 'center' }}
+            >
+              Hand Off
+            </button>
+          </div>
+        )}
       </div>
     </main>
   );

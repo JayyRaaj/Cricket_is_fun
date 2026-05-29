@@ -231,10 +231,10 @@ export default function HandOffModal({
   }, [handOffToken, onTokenHandedOff, onClose, cleanupSignaling, cleanupConnection]);
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+    <div className="modal-overlay">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+        className="modal-backdrop"
         onClick={() => {
           cleanupSignaling();
           cleanupConnection();
@@ -242,132 +242,209 @@ export default function HandOffModal({
         }}
       />
 
-      {/* Modal Content */}
-      <div className="relative w-full max-w-sm bg-slate-900 border border-slate-700/60 rounded-3xl shadow-2xl shadow-black/60 overflow-hidden">
+      {/* Modal Card */}
+      <div className="modal-card">
         {/* Header */}
-        <div className="px-6 pt-6 pb-2 text-center">
-          <div className="text-3xl mb-2">📲</div>
-          <h2 className="text-xl font-black text-white tracking-tight">
+        <div style={{
+          padding: '24px 24px 8px',
+          textAlign: 'center',
+        }}>
+          <h2 style={{
+            fontSize: 20,
+            fontWeight: 700,
+            color: 'var(--text)',
+            margin: 0,
+            letterSpacing: '-0.02em',
+          }}>
             Hand Off Scoring
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
-            Transfer active editor rights to another umpire
+          <p style={{
+            fontSize: 13,
+            color: 'var(--text-secondary)',
+            marginTop: 4,
+            fontWeight: 400,
+            lineHeight: 1.4,
+          }}>
+            Transfer active editor rights to another device
           </p>
         </div>
 
-        {/* 1. Dynamic WebRTC Searching Animation */}
+        {/* 1. WebRTC Searching State */}
         {isSearchingPeer && !webRTCConnected && (
-          <div className="flex flex-col items-center justify-center py-6 space-y-4">
-            <div className="relative flex items-center justify-center w-24 h-24">
-              <div className="absolute w-20 h-20 bg-indigo-500/25 rounded-full animate-ping" />
-              <div className="absolute w-16 h-16 bg-indigo-500/40 rounded-full animate-pulse" />
-              <div className="relative text-4xl">📡</div>
-            </div>
-            <p className="text-sm text-slate-300 font-bold animate-pulse">
-              Looking for nearby umpire...
-            </p>
-            <p className="text-[10px] text-slate-500 text-center px-8 leading-relaxed">
-              Open this match URL on the receiving device to connect over the same network via WebRTC.
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '32px 24px',
+            gap: 16,
+          }}>
+            {/* Pulsing dot — CSS only */}
+            <div style={{
+              width: 12,
+              height: 12,
+              borderRadius: '50%',
+              background: 'var(--accent)',
+              animation: 'pulse-score 1.5s ease-in-out infinite',
+              opacity: 0.8,
+            }} />
+            <p style={{
+              fontSize: 15,
+              fontWeight: 500,
+              color: 'var(--text-secondary)',
+              margin: 0,
+            }}>
+              Looking for nearby device...
             </p>
           </div>
         )}
 
-        {/* 2. WebRTC Connected Transfer Status */}
+        {/* 2. WebRTC Connected State */}
         {webRTCConnected && (
-          <div className="flex flex-col items-center justify-center py-8 space-y-3">
-            <div className="text-5xl animate-bounce">⚡</div>
-            <p className="text-sm font-bold text-emerald-400">
-              WebRTC Peer Connected!
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '32px 24px',
+            gap: 8,
+          }}>
+            <p style={{
+              fontSize: 17,
+              fontWeight: 600,
+              color: 'var(--green)',
+              margin: 0,
+            }}>
+              Connected
             </p>
-            <p className="text-xs text-slate-400">
-              Instantly transferring scoring state...
+            <p style={{
+              fontSize: 13,
+              fontWeight: 400,
+              color: 'var(--text-secondary)',
+              margin: 0,
+            }}>
+              Transferring...
             </p>
           </div>
         )}
 
-        {/* 3. Fallbacks when WebRTC Peer Discovery times out / fails */}
+        {/* 3. QR Fallback State */}
         {!isSearchingPeer && !webRTCConnected && (
-          <div className="animate-[fade-in_0.3s_ease-out]">
-            {/* QR Code fallback */}
-            <div className="flex justify-center py-3">
-              <div className="bg-white p-3.5 rounded-2xl shadow-lg border border-slate-200">
+          <div style={{ animation: 'fade-in 0.3s ease-out' }}>
+            {/* QR Code */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              padding: '16px 24px 8px',
+            }}>
+              <div style={{
+                background: '#ffffff',
+                borderRadius: 12,
+                padding: 16,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
                 {handOffUrl ? (
                   <QRCodeSVG
                     value={handOffUrl}
-                    size={170}
+                    size={160}
                     level="M"
                     bgColor="#ffffff"
-                    fgColor="#0f172a"
+                    fgColor="#000000"
                   />
                 ) : (
-                  <div className="w-[170px] h-[170px] flex items-center justify-center text-slate-400 text-xs">
+                  <div style={{
+                    width: 160,
+                    height: 160,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--text-secondary)',
+                    fontSize: 13,
+                  }}>
                     Generating...
                   </div>
                 )}
               </div>
             </div>
 
-            <p className="text-center text-[10px] text-slate-500 px-6 mt-1 leading-relaxed">
-              Scan this QR code or use peer share sheet buttons.
-              <br />
-              The recipient will instantly become the active scorer.
-            </p>
+            {/* URL preview */}
+            <div style={{
+              margin: '8px 24px 0',
+              padding: '8px 12px',
+              background: 'var(--bg)',
+              borderRadius: 8,
+            }}>
+              <p style={{
+                fontSize: 11,
+                fontFamily: 'ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace',
+                color: 'var(--text-secondary)',
+                margin: 0,
+                wordBreak: 'break-all',
+                lineHeight: 1.4,
+                textAlign: 'center',
+                userSelect: 'all',
+                WebkitUserSelect: 'all',
+              }}>
+                {handOffUrl.length > 100
+                  ? handOffUrl.slice(0, 50) + '...' + handOffUrl.slice(-40)
+                  : handOffUrl}
+              </p>
+            </div>
 
-            {/* Action buttons with priority order */}
-            <div className="px-6 py-4 space-y-2.5">
-              {/* Priority (2) Native share sheet / AirDrop */}
+            {/* Action Buttons */}
+            <div style={{
+              padding: '16px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+            }}>
+              {/* Native share */}
               {canNativeShare && (
                 <button
+                  className="btn-primary"
                   onClick={handleNativeShare}
                   disabled={shared}
-                  className="w-full py-3.5 text-base font-bold bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-2xl transition-all duration-150 active:scale-[0.98] shadow-lg shadow-indigo-900/30 select-none touch-manipulation cursor-pointer"
                 >
-                  {shared ? '✓ Shared!' : '📤 Share via AirDrop / Nearby Share'}
+                  {shared ? 'Shared!' : 'Share Link'}
                 </button>
               )}
 
-              {/* Priority (3) Copy link fallback */}
+              {/* Copy link */}
               <button
+                className="btn-secondary"
                 onClick={handleCopy}
-                className="w-full py-3 text-sm font-bold bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 rounded-2xl transition-all duration-150 active:scale-[0.98] select-none touch-manipulation cursor-pointer"
               >
-                {copied ? '✓ Copied!' : '📋 Copy Hand-Off Link'}
+                {copied ? 'Copied!' : 'Copy Link'}
               </button>
 
-              {/* URL Preview */}
-              <div className="bg-slate-850/60 rounded-xl p-2.5 border border-slate-800/80">
-                <p className="text-[9px] text-slate-500 uppercase tracking-widest font-bold mb-0.5">
-                  Hand-Off URL
-                </p>
-                <p className="text-[10px] text-slate-400 font-mono break-all leading-tight select-all">
-                  {handOffUrl.length > 100
-                    ? handOffUrl.slice(0, 50) + '...' + handOffUrl.slice(-40)
-                    : handOffUrl}
-                </p>
-              </div>
-
-              {/* Confirm Hand off (manual transition) */}
+              {/* Confirm hand-off */}
               <button
+                className="btn-text destructive"
                 onClick={handleConfirmHandOff}
-                className="w-full py-2.5 text-xs font-semibold bg-red-950/40 hover:bg-red-950/60 text-red-400 border border-red-900/30 rounded-xl transition-all duration-150 active:scale-[0.98] select-none touch-manipulation cursor-pointer"
+                style={{ width: '100%', textAlign: 'center' }}
               >
-                🔒 Confirm Hand-Off (go read-only)
+                Confirm Hand-Off
               </button>
             </div>
           </div>
         )}
 
-        {/* Footer cancel action */}
-        <div className="px-6 pb-4 pt-1">
+        {/* Cancel */}
+        <div style={{
+          padding: '0 24px 24px',
+        }}>
           <button
+            className="btn-text"
             onClick={() => {
               cleanupSignaling();
               cleanupConnection();
               onClose();
             }}
-            className="w-full py-2 text-xs font-semibold text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+            style={{ width: '100%', textAlign: 'center' }}
           >
-            Cancel Handoff
+            Cancel
           </button>
         </div>
       </div>
