@@ -10,14 +10,14 @@ const memoryDb = globalThis._memoryDb || (globalThis._memoryDb = new Map<string,
 
 const hasRedisEnv =
   typeof process !== 'undefined' &&
-  !!process.env.UPSTASH_REDIS_REST_URL &&
-  !!process.env.UPSTASH_REDIS_REST_TOKEN;
+  !!process.env.KV_REST_API_URL &&
+  !!process.env.KV_REST_API_TOKEN;
 
-// Initialize Upstash Redis client if environment variables exist
+// Initialize Upstash Redis client using Vercel KV environment variable names
 const redisClient = hasRedisEnv
   ? new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL!,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+      url: process.env.KV_REST_API_URL!,
+      token: process.env.KV_REST_API_TOKEN!,
     })
   : null;
 
@@ -57,6 +57,13 @@ export const redis = {
       return await redisClient.del(key);
     }
     return memoryDb.delete(key) ? 1 : 0;
+  },
+
+  ping: async (): Promise<string> => {
+    if (redisClient) {
+      return await redisClient.ping();
+    }
+    return 'PONG (in-memory fallback)';
   },
 
   // Helper to check if Redis is using the real cloud service or in-memory fallback
